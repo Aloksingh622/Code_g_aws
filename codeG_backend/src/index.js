@@ -29,7 +29,7 @@ const pairmode_routes=require("./routes/pairMode");
 
 
 app.use(cors({
-    origin:"https://code-g-frontend.vercel.app",
+    origin: ["https://thealok.shop", "https://www.thealok.shop", "https://codeg.thealok.shop", "https://www.codeg.thealok.shop"],
     credentials:true
 }))
 
