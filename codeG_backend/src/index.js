@@ -16,13 +16,12 @@ const problem=require("./models/problem_schema")
 const videoRouter = require("./routes/videoCreator");
 const discussion_router =require("./routes/discusion")
 const constest_router=require("./routes/contest")
-const serviceAccount = JSON.parse(process.env.GOOGLE_CREDENTIALS);
 // const serviceAccount=require("../serviceAccountKey.json")
 app.use(cookieParser());
 
 
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount)
+  credential: admin.credential.cert(require(process.env.GOOGLE_APPLICATION_CREDENTIALS))
 });
 const pairmode_routes=require("./routes/pairMode");
 
