@@ -102,12 +102,16 @@ let register = async (req, res) => {
         }
 
 
-        res.cookie("token", token, 
-            {   httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'none',  
-            maxAge: 24 * 60 * 60 * 1000,
-            overwrite: true });
+        res.cookie("token", token,
+            {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'none',
+                maxAge: 24 * 60 * 60 * 1000,
+                overwrite: true
+
+
+            });
 
         res.status(201).json({
             user: reply,
@@ -186,11 +190,13 @@ let login = async (req, res) => {
         let token = jwt.sign({ _id: real_user._id, email_id: email_id }, process.env.private_key, { expiresIn: "1d" });
 
         res.cookie("token", token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'none',  
+            sameSite: 'none',
             maxAge: 24 * 60 * 60 * 1000,
-            overwrite: true
+            overwrite: true,
+            httpOnly: true,
+            secure: true,
+            domain: 'thealok.shop'
+            
         });
 
 
@@ -389,7 +395,7 @@ const social_login = async (req, res) => {
         res.cookie("token", token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: 'none',  
+            sameSite: 'none',
             maxAge: 24 * 60 * 60 * 1000,
             overwrite: true
         });
