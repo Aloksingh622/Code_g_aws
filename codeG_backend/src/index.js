@@ -16,7 +16,6 @@ const problem=require("./models/problem_schema")
 const videoRouter = require("./routes/videoCreator");
 const discussion_router =require("./routes/discusion")
 const constest_router=require("./routes/contest")
-// const serviceAccount = JSON.parse(process.env.GOOGLE_CREDENTIALS);
 console.log("hi")
 const serviceAccount=require("../serviceAccountKey.json")
 console.log("hii")
