@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <script>self["MonacoEnvironment"] = (function (paths) {
+          return {
+            globalAPI: false,
+            getWorkerUrl : function (moduleId, label) {
+              var result =  paths[label];
+              if (/^((http:)|(https:)|(file:)|(\/\/))/.test(result)) {
+                var currentUrl = String(window.location);
+                var currentOrigin = currentUrl.substr(0, currentUrl.length - window.location.hash.length - window.location.search.length - window.location.pathname.length);
+                if (result.substring(0, currentOrigin.length) !== currentOrigin) {
+                  var js = '/*' + label + '*/importScripts("' + result + '");';
+                  var blob = new Blob([js], { type: 'application/javascript' });
+                  return URL.createObjectURL(blob);
+                }
+              }
+              return result;
+            }
+          };
+        })({
+  "editorWorkerService": "/monacoeditorwork/editor.worker.bundle.js",
+  "css": "/monacoeditorwork/css.worker.bundle.js",
+  "html": "/monacoeditorwork/html.worker.bundle.js",
+  "json": "/monacoeditorwork/json.worker.bundle.js",
+  "typescript": "/monacoeditorwork/ts.worker.bundle.js",
+  "javascript": "/monacoeditorwork/ts.worker.bundle.js",
+  "less": "/monacoeditorwork/css.worker.bundle.js",
+  "scss": "/monacoeditorwork/css.worker.bundle.js",
+  "handlebars": "/monacoeditorwork/html.worker.bundle.js",
+  "razor": "/monacoeditorwork/html.worker.bundle.js"
+});</script>
+
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/logo-16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/logo-32.png">
+  <link rel="icon" type="image/png" sizes="48x48" href="/logo-48.png">
+  <link rel="icon" type="image/png" sizes="64x64" href="/logo-64.png">
+  <link rel="icon" type="image/png" sizes="96x96" href="/logo-96.png">
+  <link rel="icon" type="image/png" sizes="128x128" href="/logo-128.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/logo-192.png">
+  <link rel="icon" type="image/png" sizes="256x256" href="/logo-256.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CodeG</title>
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <script type="module" crossorigin src="/assets/index-CoYo1Irc.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-D3LUEls3.css">
+</head>
+
+<body>
+  <div id="root"></div>
+
+
+  <script>
+
+    if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark')
+      document.documentElement.setAttribute('data-theme', 'dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+      document.documentElement.setAttribute('data-theme', 'light')
+    }
+  </script>
+</body>
+
+</html>

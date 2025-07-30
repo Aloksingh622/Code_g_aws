@@ -1,0 +1,179 @@
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from 'react-router';
+import { user_login, social_login_thunk } from "../redux/auth_slice";
+import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
+import { FcGoogle } from "react-icons/fc";
+import { FaGithub } from "react-icons/fa";
+
+// --- Custom Imports for Themed Style & Animation ---
+import AOS from 'aos';
+import 'aos/dist/aos.css';
+import logo from "../assets/logo.png";
+import { signInWithGoogle, signInWithGitHub } from "../utils/firebase_auth";
+import Particles from "../components/ui/particlebg"; // Assuming this is the correct path
+
+
+const loginSchema = z.object({
+  email_id: z.string().email("Invalid email address"),
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .regex(/[A-Z]/, "Password must include at least one uppercase letter")
+    .regex(/[0-9]/, "Password must include at least one number")
+    .regex(/[^A-Za-z0-9]/, "Password must include at least one special character"),
+});
+
+
+function Login() {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const { is_authenticated, loading, error } = useSelector((state) => state.auth);
+  const [is_password_visible, set_is_password_visible] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({ resolver: zodResolver(loginSchema) });
+
+  // Initialize AOS on component mount
+  useEffect(() => {
+    AOS.init({
+      duration: 800,
+      once: true,
+      easing: 'ease-out-cubic',
+    });
+  }, []);
+
+  useEffect(() => {
+    if (is_authenticated) {
+      navigate('/');
+    }
+  }, [is_authenticated, navigate]);
+
+  const onSubmit = (data) => {
+    dispatch(user_login(data));
+  };
+
+  const handleSocialLogin = async (signInProvider) => {
+    try {
+      const result = await signInProvider();
+      const idToken = await result.user.getIdToken();
+      dispatch(social_login_thunk(idToken));
+    } catch (err) {
+      console.error("Social login failed", err);
+    }
+  };
+
+  return (
+    <div className="relative min-h-screen flex items-center justify-center p-4  overflow-hidden bg-gradient-to-br from-sky-100 via-violet-100 to-pink-100 dark:from-slate-800 dark:via-neutral-900 dark:to-slate-600  transition-colors">
+      {}
+      <div className="absolute inset-0 z-20 pointer-events-none">
+        <Particles
+          particleColors={['#ffffff', '#ffffff']}
+          particleCount={180}
+          particleSpread={10}
+          speed={0.1}
+          particleBaseSize={100}
+          moveParticlesOnHover={true}
+          alphaParticles={false}
+          disableRotation={false}
+          className="absolute inset-0 w-full h-full"
+        />
+      </div>
+
+      {}
+      <div
+        data-aos="zoom-in-up"
+        className="relative z-10 w-full max-w-md bg-base-100/10 backdrop-blur-md border border-gray-700 p-6 sm:p-8 rounded-2xl shadow-2xl"
+      >
+
+        {}
+        <div className="text-center mb-8">
+          <img src={logo} alt="CodeG Logo" className="h-16 w-16 mx-auto mb-4 rounded-xl shadow-lg" />
+          <h2 className="text-3xl font-bold text-black dark:text-white ">Welcome Back</h2>
+          <p className="text-gray-400 mt-2">Sign in to continue your journey.</p>
+        </div>
+
+        {}
+        <div className="flex justify-center gap-4">
+          <button onClick={() => handleSocialLogin(signInWithGoogle)} aria-label="Continue with Google" className="btn btn-outline btn-square border-gray-600 hover:bg-white/10 transition-all duration-300">
+            <FcGoogle size={24} />
+          </button>
+          <button onClick={() => handleSocialLogin(signInWithGitHub)} aria-label="Continue with GitHub" className="btn btn-outline btn-square border-gray-600 hover:bg-white/10 transition-all duration-300">
+            <FaGithub size={24} className=" text-black dark:text-white" />
+          </button>
+        </div>
+
+        {}
+        <div className="relative flex py-5 items-center">
+          <div className="flex-grow border-t border-gray-700"></div>
+          <span className="flex-shrink mx-4 text-xs text-gray-500 font-semibold uppercase">Or continue with</span>
+          <div className="flex-grow border-t border-gray-700"></div>
+        </div>
+
+        {}
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <div>
+            <input
+              type="email"
+              placeholder="Email Address"
+              className={`input input-bordered w-full bg-base-300/20 ${errors.email_id ? 'input-error' : ''}`}
+              {...register("email_id")}
+            />
+            {errors.email_id && <p className="text-error text-sm mt-1">{errors.email_id.message}</p>}
+          </div>
+
+          <div>
+            <div className="relative">
+              <input
+                type={is_password_visible ? "text" : "password"}
+                placeholder="Password"
+                className={`input input-bordered w-full bg-base-300/20 pr-10 ${errors.password ? 'input-error' : ''}`}
+                {...register("password")}
+              />
+              <button
+                type="button"
+                onClick={() => set_is_password_visible(!is_password_visible)}
+                className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 cursor-pointer hover:text-black dark:hover:text-white"
+              >
+                {is_password_visible ? <AiOutlineEyeInvisible size={22} /> : <AiOutlineEye size={22} />}
+              </button>
+            </div>
+            {errors.password && <p className="text-error text-sm mt-1">{errors.password.message}</p>}
+            <p className="text-xs text-gray-400 mt-1">
+              Must be at least 8 characters, include a capital letter, a number, and a special character.
+            </p>
+          </div>
+
+
+
+          <div className="pt-2">
+            <button
+              type="submit"
+              disabled={loading}
+              className={`btn btn-primary w-full text-base font-semibold ${loading ? 'loading' : ''}`}
+            >
+              {loading ? "Logging In..." : "Login"}
+            </button>
+          </div>
+        </form>
+
+        {}
+        <p className="text-center text-sm text-gray-400 mt-8">
+          Don’t have an account?{" "}
+          <a href="/signup" className="font-semibold text-primary hover:underline">
+            Create one
+          </a>
+        </p>
+      </div>
+    </div>
+  );
+}
+
+export default Login;
