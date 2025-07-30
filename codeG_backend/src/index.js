@@ -17,13 +17,18 @@ const videoRouter = require("./routes/videoCreator");
 const discussion_router =require("./routes/discusion")
 const constest_router=require("./routes/contest")
 // const serviceAccount = JSON.parse(process.env.GOOGLE_CREDENTIALS);
+console.log("hi")
 const serviceAccount=require("../serviceAccountKey.json")
+console.log("hii")
+app.use(express.json());
 app.use(cookieParser());
+console.log("hiii")
 
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount)
 });
+console.log("hiiii")
 const pairmode_routes=require("./routes/pairMode");
 
 
@@ -33,7 +38,6 @@ app.use(cors({
 }))
 
 
-app.use(express.json());
 
 app.use("/user", user_routes);
 app.use("/problem",problem_routes)
