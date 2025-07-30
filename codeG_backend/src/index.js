@@ -16,18 +16,15 @@ const problem=require("./models/problem_schema")
 const videoRouter = require("./routes/videoCreator");
 const discussion_router =require("./routes/discusion")
 const constest_router=require("./routes/contest")
-console.log("hi")
+
 const serviceAccount=require("../serviceAccountKey.json")
-console.log("hii")
 app.use(express.json());
 app.use(cookieParser());
-console.log("hiii")
 
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount)
 });
-console.log("hiiii")
 const pairmode_routes=require("./routes/pairMode");
 
 
