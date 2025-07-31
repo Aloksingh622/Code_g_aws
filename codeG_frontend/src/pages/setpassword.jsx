@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router';
@@ -64,7 +62,8 @@ const SetPasswordPage = () => {
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = useState({ type: '', message: '' });
 
-  const newPasswordValue = watch('newPassword');
+  // FIXED: Changed from 'newPassword' to 'password' to match the registration
+  const newPasswordValue = watch('password');
 
   const onSubmit = async (data) => {
     setFeedback({ type: '', message: '' });
@@ -109,7 +108,7 @@ const SetPasswordPage = () => {
           
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <PasswordInput
-              id="newPassword"
+              id="password"
               label="New Password"
               register={register('password', {
                 required: 'A new password is required.',
@@ -119,7 +118,7 @@ const SetPasswordPage = () => {
                   hasSpecialChar: v => /[!@#$%^&*(),.?":{}|<>]/.test(v) || 'Must contain one special character.',
                 }
               })}
-              error={errors.newPassword}
+              error={errors.password}
               isVisible={showNew}
               toggleVisibility={() => setShowNew(!showNew)}
             />

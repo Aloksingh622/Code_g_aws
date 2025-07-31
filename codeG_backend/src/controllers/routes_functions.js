@@ -388,14 +388,14 @@ const social_login = async (req, res) => {
             setpassword,
             firebase_uid: real_user.firebase_uid
         };
-
+        // On localhost
         res.cookie("token", token, {
-            sameSite: 'none',
+            sameSite: 'lax',           // more forgiving than 'none'
             maxAge: 24 * 60 * 60 * 1000,
             overwrite: true,
             httpOnly: true,
-            secure: true,
-            domain: 'thealok.shop'  
+            secure: false,             // set to false for HTTP
+            // no domain
         });
 
         res.status(200).json({

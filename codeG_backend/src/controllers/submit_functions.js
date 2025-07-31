@@ -7,120 +7,129 @@ const {trackProblemAttempt}=require("./contest_fun")
 
 const submit_the_code = async (req, res) => {
     try {
-
-         
-        const  user_id = req.real_user._id;
+        const user_id = req.real_user._id;
         const problem_id = req.params.id;
-        const { language, code, contestId } = req.body; // Add contestId from request body
-
-        console.log(code,problem_id)
+        const { language, code, contestId } = req.body;
 
         if (!user_id || !problem_id || !language || !code) {
-            return res.status(400).json({ success: false, message: "Missing required fields." });
+            return res.status(400).json({
+                success: false,
+                status: "bad_request",
+                errorMessage: "Missing required fields.",
+            });
         }
 
         const submit_problem = await problem.findById(problem_id);
         if (!submit_problem) {
-            return res.status(404).json({ success: false, message: "Problem not found." });
+            return res.status(404).json({
+                success: false,
+                status: "not_found",
+                errorMessage: "Problem not found.",
+            });
         }
 
-        // --- CONTEST INTEGRATION: Track attempt if from contest ---
+        // --- CONTEST ATTEMPT TRACKING ---
         if (contestId) {
             try {
                 await trackProblemAttempt(user_id, contestId, problem_id);
             } catch (error) {
                 console.error('Error tracking contest attempt:', error);
-                // Continue with submission even if tracking fails
+                // Continue submission
             }
         }
 
-        // --- CHANGE 1: Combine both visible and hidden test cases ---
         const all_testcases = [
             ...submit_problem.visible_testcase,
             ...submit_problem.hidden_testcase
         ];
 
-        // Create a pending submission record first
-        // --- CHANGE 2: Use the combined length for the total count ---
-        let submissionss = await submission.create({
+        let submissionDoc = await submission.create({
             user_id,
             problem_id,
             code,
             language,
             status: "pending",
-            total_testcase: all_testcases.length, // Use the total length of all test cases
-            contest_id: contestId || null, // Store contest ID if provided
+            total_testcase: all_testcases.length,
+            contest_id: contestId || null,
         });
 
         const language_num = language_number(language);
-
-        // --- CHANGE 3: Create the Judge0 batch from the combined array ---
-        const submission_batch = all_testcases.map((val) => ({
+        const submission_batch = all_testcases.map((testcase) => ({
             source_code: code,
             language_id: language_num,
-            stdin: val.input,
-            expected_output: val.output,
+            stdin: testcase.input,
+            expected_output: testcase.output,
         }));
 
-        const testcase_tokens = await submit_batch(submission_batch);
-        const token_array = testcase_tokens.map((val) => val.token);
-        const final_result = await submit_token(token_array);
+        const tokens = await submit_batch(submission_batch);
+        const token_array = tokens.map((t) => t.token);
+        const results = await submit_token(token_array);
 
-        // Process the results (this logic remains the same)
+        // --- Error Handling & Aggregation ---
         let testcase_passed = 0;
-        let totalRuntime = 0;
-        let maxMemory = 0;
+        let runtime = 0;
+        let memory = 0;
         let finalStatus = "accepted";
         let finalErrorMessage = null;
 
-        for (const result of final_result) {
-            if (result.status_id === 3) { // Accepted
+        for (const result of results) {
+            if (result.status_id === 3) {
                 testcase_passed++;
-                totalRuntime += parseFloat(result.time);
-                maxMemory = Math.max(maxMemory, result.memory);
+                runtime += parseFloat(result.time || 0);
+                memory = Math.max(memory, result.memory || 0);
             } else {
                 if (finalStatus === "accepted") {
-                    finalStatus = result.status.description.replace(/ /g, '_').toLowerCase();
-                    finalErrorMessage = result.stderr || result.compile_output || `Failed on a hidden test case.`;
+                    if (result.compile_output) {
+                        finalStatus = "compile_error";
+                        finalErrorMessage = `Compilation Error:\n${result.compile_output}`;
+                    } else if (result.stderr) {
+                        finalStatus = "runtime_error";
+                        finalErrorMessage = `Runtime Error:\n${result.stderr}`;
+                    } else if (result.status && result.status.description) {
+                        finalStatus = result.status.description.replace(/ /g, "_").toLowerCase();
+                        finalErrorMessage = `Judge Error: ${result.status.description}`;
+                    } else {
+                        finalStatus = "unknown_error";
+                        finalErrorMessage = "An unknown error occurred during evaluation.";
+                    }
                 }
             }
         }
 
-        // Update the submission record in the database
-        submissionss.status = finalStatus;
-        submissionss.testcase_passed = testcase_passed;
-        submissionss.error_message = finalErrorMessage;
-        submissionss.runtime = totalRuntime;
-        submissionss.memory = maxMemory;
-        await submissionss.save();
+        // Save to DB
+        submissionDoc.status = finalStatus;
+        submissionDoc.testcase_passed = testcase_passed;
+        submissionDoc.error_message = finalErrorMessage;
+        submissionDoc.runtime = runtime;
+        submissionDoc.memory = memory;
+        await submissionDoc.save();
 
-        // If accepted, update user's solved problems
+        // Update user's solved problems
         if (finalStatus === "accepted") {
             if (!req.real_user.problem_solved.includes(problem_id)) {
                 req.real_user.problem_solved.push(problem_id);
                 await req.real_user.save();
             }
 
-            // --- CONTEST INTEGRATION: Track solve if from contest ---
+            // Optional: Track solve in contest
             // if (contestId) {
             //     try {
             //         await trackProblemSolved(user_id, contestId, problem_id);
-            //     } catch (error) {
-            //         console.error('Error tracking contest solve:', error);
-                    
+            //     } catch (err) {
+            //         console.error('Error tracking contest solve:', err);
             //     }
             // }
         }
 
-        // Send a detailed response back to the frontend
+        // Final Response
         res.status(200).json({
             success: finalStatus === "accepted",
             status: finalStatus,
-            runtime: totalRuntime,
-            memory: maxMemory,
+            runtime,
+            memory,
             errorMessage: finalErrorMessage,
             contestId: contestId || null,
-            problemId: problem_id, // <--- THIS IS THE ONLY CHANGE YOU NEED
+            problemId: problem_id,
         });
 
     } catch (err) {
@@ -128,11 +137,10 @@ const submit_the_code = async (req, res) => {
         res.status(500).json({
             success: false,
             status: "server_error",
-            errorMessage: "An internal server error occurred.",
+            errorMessage: "Internal Server Error: " + err.message
         });
     }
 };
-
 
 let run_the_code = async (req, res) => {
     try {
@@ -141,12 +149,20 @@ let run_the_code = async (req, res) => {
         let { language, code } = req.body;
 
         if (!user_id || !problem_id || !language || !code) {
-            return res.status(400).send("Some fields are missing");
+            return res.status(400).json({
+                success: false,
+                testCases: [],
+                errorMessage: "Missing required fields"
+            });
         }
 
         const submit_problem = await problem.findById(problem_id);
         if (!submit_problem) {
-            return res.status(404).send("Problem not found");
+            return res.status(404).json({
+                success: false,
+                testCases: [],
+                errorMessage: "Problem not found"
+            });
         }
 
         let language_num = language_number(language);
@@ -159,40 +175,57 @@ let run_the_code = async (req, res) => {
         }));
 
         let testcase_token = await submit_batch(submission_batch);
+        if (!testcase_token || !Array.isArray(testcase_token)) {
+            return res.status(500).json({
+                success: false,
+                testCases: [],
+                errorMessage: "Failed to submit code to Judge0"
+            });
+        }
+
         let token_array = testcase_token.map((val) => val.token);
         let final_result = await submit_token(token_array);
 
         let testCasesPassed = 0;
         let runtime = 0;
         let memory = 0;
-        let overallStatus = true; // Renamed from 'status' to avoid confusion
-        let finalErrorMessage = null; // To hold the first error encountered
+        let overallStatus = true;
+        let finalErrorMessage = null;
 
         for (const test of final_result) {
-            if (test.status_id === 3) { // Accepted
+            if (test.status_id === 3) {
+                // Accepted
                 testCasesPassed++;
-                runtime += parseFloat(test.time);
-                memory = Math.max(memory, test.memory);
+                runtime += parseFloat(test.time || 0);
+                memory = Math.max(memory, test.memory || 0);
             } else {
-                // If this is the first error we've seen, capture its message
-                if (overallStatus) { 
-                    finalErrorMessage = test.stderr || test.compile_output || `Failed on test case with input: ${test.stdin}`;
-                }
                 overallStatus = false;
+
+                // Construct a detailed error message
+                if (!finalErrorMessage) {
+                    if (test.compile_output) {
+                        finalErrorMessage = `Compilation Error:\n${test.compile_output}`;
+                    } else if (test.stderr) {
+                        finalErrorMessage = `Runtime Error:\n${test.stderr}`;
+                    } else if (test.status && test.status.description) {
+                        finalErrorMessage = `Judge Error: ${test.status.description}`;
+                    } else {
+                        finalErrorMessage = `Unknown error on input: ${test.stdin}`;
+                    }
+                }
             }
         }
 
-        // Send the structured response
-        res.status(200).json({ // Use 200 for success, even if tests fail
+        res.status(200).json({
             success: overallStatus,
             testCases: final_result,
             runtime,
             memory,
-            errorMessage: finalErrorMessage // Include the error message
+            errorMessage: finalErrorMessage
         });
 
     } catch (err) {
-        // Ensure even server errors send back a structured response
+        console.error("Run code error:", err);
         res.status(500).json({
             success: false,
             testCases: [],

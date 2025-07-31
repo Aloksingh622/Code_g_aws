@@ -284,12 +284,12 @@ const CodeEditorPanel = ({ language, isDark, onMount, code, onCodeChange, readOn
             language={languageConfig[language]?.monacoLang || 'javascript'}
             theme={isDark ? 'vs-dark' : 'light'}
             onMount={onMount}
-         
+
             value={code}
-       
+
             onChange={onCodeChange}
             options={{
-                readOnly: readOnly, 
+                readOnly: readOnly,
                 minimap: { enabled: false },
                 fontSize: 14,
                 wordWrap: 'on',
@@ -402,12 +402,12 @@ const DSAProblemPage = () => {
 
     const [localStream, setLocalStream] = useState(null);
     const [remoteStream, setRemoteStream] = useState(null);
-    let [peerConnection, setPeerConnection] = useState(null); 
+    let [peerConnection, setPeerConnection] = useState(null);
     const [isMuted, setIsMuted] = useState(false);
     const [isSpeakerOn, setIsSpeakerOn] = useState(true);
     const remoteAudioRef = useRef();
 
-    
+
 
 
 
@@ -566,13 +566,16 @@ const DSAProblemPage = () => {
         setIsRunning(true);
         setTestResults(null);
         addToast("Running your code...", "info");
-          problemId=problemData._id
+        problemId = problemData._id
 
         try {
             const response = await axios_client.post(`/code/run/${problemId}`, { code: userCode, language: language });
             setTestResults(response.data);
             if (response.data.success) { addToast("Accepted!", "success"); }
-            else { addToast("Some test cases failed.", "error"); }
+            else {
+                const errMsg = response.data.errorMessage || "Some test cases failed.";
+                addToast(errMsg, "error");
+            }
         } catch (error) {
             const errorMessage = error.response?.data?.message || error.response?.data || "An unexpected server error occurred.";
             setTestResults({ success: false, testCases: [], errorMessage: errorMessage });
@@ -597,47 +600,44 @@ const DSAProblemPage = () => {
         const queryParams = new URLSearchParams(location.search);
         const contestId = queryParams.get('contestId');
         console.log(problemData)
-        problemId=problemData._id
+        problemId = problemData._id
 
         try {
-            // --- THIS IS THE KEY FLOW ---
 
-            // 3. First API Call: Submit the code for judging
             const submissionResponse = await axios_client.post(`/code/submit/${problemId}`, {
                 code: userCode,
                 language: language,
-                contestId: contestId, // Send contestId here
+                contestId: contestId,
             });
+            if (result.success) {
+                addToast("Code Accepted!", "success");
+            } else {
+                addToast(result.errorMessage || "Test cases failed.", "error");
+            }
+
             const result = submissionResponse.data;
 
-            // 4. Check if this was a SUCCESSFUL contest submission
             if (result.success && result.contestId) {
 
-                // This was a successful solve inside a contest.
                 addToast("Code Accepted! Now updating contest progress...", "success");
 
                 try {
-                    // 5. Second API Call: Explicitly tell the contest endpoint to track the solve.
                     await axios_client.post(`/contest/${result.contestId}/track-solve/${result.problemId}`);
 
-                    // 6. Set the sessionStorage item for the redirect
                     sessionStorage.setItem(`solvedProblem_${result.contestId}`, result.problemId);
 
-                    // 7. Redirect back to the arena
                     setTimeout(() => {
                         navigate(`/contest/${result.contestId}/arena`);
-                    }, 1500); // Give user time to see toast
+                    }, 1500);
 
                 } catch (trackingError) {
-                    // Handle cases where judging works but contest tracking fails
                     console.error("CRITICAL: Code was accepted but failed to track contest progress.", trackingError);
                     addToast("Error updating contest progress. Please contact support.", "error");
-                    setSubmissionResult(result); // Show the success modal anyway
+                    setSubmissionResult(result);
                 }
 
             } else {
-                // This was a regular submission, or a failed contest one.
-                // Just show the result modal as usual.
+
                 setSubmissionResult(result);
             }
 
@@ -928,7 +928,7 @@ const DSAProblemPage = () => {
         if (!isPairSession || !user?._id) return;
 
         const sessionRef = doc(db, 'pair_sessions', sessionId);
-        
+
         const clearWebRTCData = async () => {
             if (!sessionId) return;
             try {
@@ -959,21 +959,19 @@ const DSAProblemPage = () => {
             // Auto-join logic (already correct)
             if (data.user1_id !== user._id && !data.user2_id) {
                 updateDoc(sessionRef, { user2_id: user._id, user2_mic_on: true });
-                return; 
+                return;
             }
-            
-            // Only proceed with WebRTC if both users are present.
-            if (!data.user1_id || !data.user2_id) return;
-            
-            // ============ WebRTC State Machine Starts Here ============
 
-            // --- STAGE 1: INITIALIZATION ---
+            if (!data.user1_id || !data.user2_id) return;
+
+
+
             if (!peerConnection && !webrtcInitialized.current) {
                 webrtcInitialized.current = true; // Prevent this block from running again
 
                 await clearWebRTCData(); // Start with a clean slate
 
-                const servers = { 
+                const servers = {
                     iceServers: [{ urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] }],
                     sdpSemantics: 'unified-plan' // *** FIX #1: Force modern, consistent SDP format ***
                 };
@@ -981,7 +979,7 @@ const DSAProblemPage = () => {
                 const pc = new RTCPeerConnection(servers);
                 setPeerConnection(pc); // Set the connection object in state
 
-                pc.ontrack = (event) => {  setRemoteStream(event.streams[0]); };
+                pc.ontrack = (event) => { setRemoteStream(event.streams[0]); };
                 pc.onicecandidate = (event) => {
                     if (event.candidate) {
                         const field = (data.user1_id === user._id) ? 'webrtc_ice_candidates_user1' : 'webrtc_ice_candidates_user2';
@@ -1000,7 +998,7 @@ const DSAProblemPage = () => {
 
                 return; // IMPORTANT: Exit here to let state update before continuing to signal
             }
-            
+
             // --- STAGE 2: SIGNALING EXCHANGE ---
             if (peerConnection && !isProcessingSignaling.current) {
                 isProcessingSignaling.current = true;
@@ -1017,7 +1015,7 @@ const DSAProblemPage = () => {
                         if (data.webrtc_answer && peerConnection.signalingState === 'have-local-offer') {
                             await peerConnection.setRemoteDescription(new RTCSessionDescription(data.webrtc_answer));
                         }
-                    } 
+                    }
                     // --- CALLEE LOGIC ---
                     else {
                         if (data.webrtc_offer && peerConnection.signalingState === 'stable') {
@@ -1059,8 +1057,8 @@ const DSAProblemPage = () => {
             }
         };
 
-    // This consolidated hook runs whenever a key dependency changes.
-    }, [isPairSession, sessionId, user, peerConnection]); 
+        // This consolidated hook runs whenever a key dependency changes.
+    }, [isPairSession, sessionId, user, peerConnection]);
 
 
     useEffect(() => {
@@ -1083,51 +1081,51 @@ const DSAProblemPage = () => {
         };
     }, []);
 
-   useEffect(() => {
-    // Only proceed if we have a stream and a reference to our audio element.
-    if (remoteStream && remoteAudioRef.current) {
-        remoteAudioRef.current.srcObject = remoteStream;
+    useEffect(() => {
+       
+        if (remoteStream && remoteAudioRef.current) {
+            remoteAudioRef.current.srcObject = remoteStream;
 
-        const playAudio = () => {
-            const audioEl = remoteAudioRef.current;
-            if (audioEl) {
-                // Ensure the audio element's muted state respects our speaker toggle
-                audioEl.muted = !isSpeakerOn;
-                
-                // Attempt to play the audio
-                const promise = audioEl.play();
+            const playAudio = () => {
+                const audioEl = remoteAudioRef.current;
+                if (audioEl) {
+                    // Ensure the audio element's muted state respects our speaker toggle
+                    audioEl.muted = !isSpeakerOn;
 
-                if (promise !== undefined) {
-                    promise.catch(error => {
-                        // This block runs if autoplay is blocked.
-                        console.warn("⚠️ Playback blocked. Waiting for user gesture...");
-                        addToast("Click anywhere to enable audio", "info");
+                    // Attempt to play the audio
+                    const promise = audioEl.play();
 
-                        // Define a function that will be called on the first click.
-                        const enableAudioOnClick = () => {
-                            audioEl.play().then(() => {
-                                // IMPORTANT: Clean up the listener after it has succeeded.
-                                document.removeEventListener('click', enableAudioOnClick);
-                            });
-                        };
-                        
-                        // Add the one-time click listener to the entire document.
-                        document.addEventListener('click', enableAudioOnClick);
-                    });
+                    if (promise !== undefined) {
+                        promise.catch(error => {
+                            // This block runs if autoplay is blocked.
+                            console.warn("⚠️ Playback blocked. Waiting for user gesture...");
+                            addToast("Click anywhere to enable audio", "info");
+
+                            // Define a function that will be called on the first click.
+                            const enableAudioOnClick = () => {
+                                audioEl.play().then(() => {
+                                    // IMPORTANT: Clean up the listener after it has succeeded.
+                                    document.removeEventListener('click', enableAudioOnClick);
+                                });
+                            };
+
+                            // Add the one-time click listener to the entire document.
+                            document.addEventListener('click', enableAudioOnClick);
+                        });
+                    }
                 }
-            }
-        };
+            };
 
-        playAudio();
-    }
-}, [remoteStream]);
+            playAudio();
+        }
+    }, [remoteStream]);
 
 
-useEffect(() => {
-    if (remoteAudioRef.current) {
-        remoteAudioRef.current.muted = !isSpeakerOn;
-    }
-}, [isSpeakerOn])
+    useEffect(() => {
+        if (remoteAudioRef.current) {
+            remoteAudioRef.current.muted = !isSpeakerOn;
+        }
+    }, [isSpeakerOn])
     const handleToggleMute = async () => {
         if (!localStream) {
             addToast("Microphone not available", "error");
@@ -1156,7 +1154,7 @@ useEffect(() => {
         // Called when new session starts
         cleanupConnections(); // ✅ Prevent old audio bugs
 
-    }, [sessionId]);       
+    }, [sessionId]);
 
     useEffect(() => {
         // This is the main guard clause. It now correctly waits for a full session.
@@ -1250,7 +1248,7 @@ useEffect(() => {
         // The cleanup is handled when the component unmounts entirely by another hook or logic
 
     }, [sessionData, user, isPairSession, peerConnection, sessionId, addToast]);
-   
+
 
     useEffect(() => {
         const enableAudio = () => {
@@ -1374,7 +1372,7 @@ useEffect(() => {
                         <Button onClick={handleSubmit} disabled={isRunning} className="bg-green-600 hover:bg-green-700 text-white"><Check className="h-4 w-4 mr-2" />Submit</Button>
                     </div> */}
                     <div className="flex-1 flex justify-center items-center gap-4 relative">
-                        {}
+                        { }
                         <div className="relative group">
                             <Button
                                 className={`
@@ -1400,7 +1398,7 @@ useEffect(() => {
                                 </div>
                             </Button>
 
-                            {}
+                            { }
                             {isPairSession && !isDriver && (
                                 <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-black dark:bg-gray-800 text-white text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none z-10">
                                     Only driver can run code
@@ -1409,7 +1407,7 @@ useEffect(() => {
                             )}
                         </div>
 
-                        {}
+                        { }
                         <div className="relative group">
                             <Button
                                 onClick={handleSubmit}
@@ -1429,7 +1427,7 @@ useEffect(() => {
                                 </div>
                             </Button>
 
-                            {}
+                            { }
                             {isPairSession && !isDriver && (
                                 <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-black dark:bg-gray-800 text-white text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none z-10">
                                     Only driver can submit code
@@ -1493,7 +1491,7 @@ useEffect(() => {
                                         </div>
                                         <div className="flex items-center gap-2"><Button variant="ghost" size="icon" onClick={handleResetCode} className="text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-white"><RotateCcw className="h-4 w-4" /></Button><LanguageSelector language={language} setLanguage={setLanguage} availableLanguages={problemData.start_code} /></div>
                                     </header>
-                                    {}
+                                    { }
                                     <div className="flex-1 min-h-0">
                                         <CodeEditorPanel
                                             language={language}
