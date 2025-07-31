@@ -27,6 +27,6 @@ dist-ssr
 
 
 node_modules
-
-
+.env
+serviceAccountKey.json
 dist-ssr

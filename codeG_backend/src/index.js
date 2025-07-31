@@ -17,14 +17,16 @@ const videoRouter = require("./routes/videoCreator");
 const discussion_router =require("./routes/discusion")
 const constest_router=require("./routes/contest")
 
-const serviceAccount=require("../serviceAccountKey.json")
+// const serviceAccount=require("../serviceAccountKey.json")
 app.use(express.json());
 app.use(cookieParser());
 
 
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount)
-});
+// admin.initializeApp({
+//   credential: admin.credential.cert(serviceAccount)
+// });
+
+admin.initializeApp();
 const pairmode_routes=require("./routes/pairMode");
 
 

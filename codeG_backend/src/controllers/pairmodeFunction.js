@@ -7,7 +7,7 @@ const db = admin.firestore();
   
     const { problemId } = req.body;
     
-  
+  console.log("hi")
     const  userId  = req.real_user._id.toString();
 
     if (!userId || !problemId) {
