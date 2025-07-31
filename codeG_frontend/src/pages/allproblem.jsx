@@ -13,7 +13,6 @@ import LoginAccessCard from '@/component/loginmessage';
 
 
 
-// Helper function to get theme-aware styles for problem difficulty
 const getDifficultyConfig = (difficulty) => {
     switch (difficulty?.toLowerCase()) {
         case 'easy':
@@ -32,7 +31,6 @@ const ProblemsPage = () => {
     const { user } = useSelector((state) => state.auth);
     const navigate = useNavigate();
 
-    // State management
     const [problems, setProblems] = useState([]);
     const [filteredProblems, setFilteredProblems] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -45,12 +43,14 @@ const ProblemsPage = () => {
 
     const [playIconAnimation, setPlayIconAnimation] = useState(false);
 
-    // Todo state management
+    const [removingFromTodo, setRemovingFromTodo] = useState(null);
+
+    const [addingToTodo, setAddingToTodo] = useState(null);
+    const [notification, setNotification] = useState({ show: false, message: '' });
     const [todoProblems, setTodoProblems] = useState([]);
     const [showTodoPanel, setShowTodoPanel] = useState(false);
     const [todoLoading, setTodoLoading] = useState(false);
 
-    // Fetch initial data
     useEffect(() => {
         const fetchProblems = async () => {
             try {
@@ -77,7 +77,7 @@ const ProblemsPage = () => {
         fetchProblems();
     }, []);
 
-    // Fetch todo problems
+
     useEffect(() => {
         if (user) {
             fetchTodoProblems();
@@ -86,7 +86,7 @@ const ProblemsPage = () => {
 
     const handleClosePanel = () => {
         setShowTodoPanel(false);
-        setPlayIconAnimation(true); // Trigger the icon animation
+        setPlayIconAnimation(true);
     }
 
     const fetchTodoProblems = async () => {
@@ -102,32 +102,59 @@ const ProblemsPage = () => {
         }
     };
 
-    // Add problem to todo
+
     const addToTodo = async (problemId) => {
+        setAddingToTodo(problemId);
         try {
             await axios_client.post("/user/todo/add", { problemId });
-            fetchTodoProblems(); // Refresh todo list
+            fetchTodoProblems();
+            setNotification({ show: true, message: "📝 Got it! The problem has been added to your To-Do list. Let's tackle it soon!" });
+            setTimeout(() => {
+                setNotification({ show: false, message: '' });
+            }, 2000);
+
+
         } catch (err) {
             console.error('Failed to add problem to todo:', err);
+            setNotification({ show: true, message: 'Error: Could not add problem.' });
+            setTimeout(() => {
+                setNotification({ show: false, message: '' });
+            }, 2000);
+        }
+        finally {
+            setAddingToTodo(null);
         }
     };
 
-    // Remove problem from todo
+
     const removeFromTodo = async (problemId) => {
+        setRemovingFromTodo(problemId);
         try {
             await axios_client.delete("/user/todo/remove", { data: { problemId } });
-            fetchTodoProblems(); // Refresh todo list
+            fetchTodoProblems();
+            setNotification({ show: true, message: 'Problem removed from your Todo list!' });
+
+            setTimeout(() => {
+                setNotification({ show: false, message: '' });
+            }, 2000);
         } catch (err) {
             console.error('Failed to remove problem from todo:', err);
+            setNotification({ show: true, message: 'Error: Could not remove problem.' });
+            setTimeout(() => {
+                setNotification({ show: false, message: '' });
+            }, 2000);
+        }
+        finally {
+            setRemovingFromTodo(null);
         }
     };
 
-    // Check if problem is in todo
+
     const isProblemInTodo = (problemId) => {
         return todoProblems.some(todo => todo._id === problemId);
     };
 
-    // Apply filters whenever dependencies change
+
     useEffect(() => {
         let filtered = problems;
 
@@ -150,12 +177,10 @@ const ProblemsPage = () => {
         setFilteredProblems(filtered);
     }, [searchTerm, selectedDifficulty, selectedTag, selectedStatus, problems, user]);
 
-    // Navigate to problem detail page
     const handleProblemClick = (problemId) => {
         navigate(`/problems/${problemId}`);
     };
 
-    // Calculate statistics
     const getStats = () => ({
         total: problems.length,
         easy: problems.filter(p => p.difficulty?.toLowerCase() === 'easy').length,
@@ -225,7 +250,7 @@ const ProblemsPage = () => {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-sky-100 via-violet-100 to-pink-100 dark:from-slate-800 dark:via-neutral-900 dark:to-slate-600 p-4 transition-colors">
-            {}
+            { }
             <div className="absolute inset-0 z-20 pointer-events-none">
                 <Particles
                     particleColors={['#ffffff', '#ffffff']}
@@ -245,7 +270,7 @@ const ProblemsPage = () => {
                 className="bg-base-200/80 backdrop-blur-sm border-b border-base-300/80 bg-gradient-to-br from-sky-100 via-violet-100 to-pink-100 dark:from-slate-800 dark:via-neutral-900 dark:to-slate-600 p-4 transition-colors"
             >
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                    {}
+                    { }
                     <div className="text-center mb-8">
                         <div
                             className="flex items-center justify-center mb-4"
@@ -275,7 +300,7 @@ const ProblemsPage = () => {
                         </p>
                     </div>
 
-                    {}
+                    { }
                     <div
                         className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8"
                         data-aos="fade-up"
@@ -390,14 +415,14 @@ const ProblemsPage = () => {
                         </div>
                     </div>
 
-                    {}
+                    { }
                     <div
                         className="bg-base-100/50 dark:bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-base-300/50 dark:border-gray-700/50 shadow-lg"
                         data-aos="zoom-in-up"
                         data-aos-delay="700"
                         data-aos-duration="500"
                     >
-                        {}
+                        { }
                         <motion.div
                             className="relative mb-6"
                             data-aos="fade-right"
@@ -416,9 +441,9 @@ const ProblemsPage = () => {
                             />
                         </motion.div>
 
-                        {}
+                        { }
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                            {}
+                            { }
                             <div
                                 className="space-y-3"
                                 data-aos="fade-up"
@@ -459,7 +484,7 @@ const ProblemsPage = () => {
                                 </div>
                             </div>
 
-                            {}
+                            { }
                             <div
                                 className="space-y-3"
                                 data-aos="fade-up"
@@ -497,7 +522,7 @@ const ProblemsPage = () => {
                                 </div>
                             </div>
 
-                            {}
+                            { }
                             <div
                                 className="space-y-3"
                                 data-aos="fade-up"
@@ -529,7 +554,7 @@ const ProblemsPage = () => {
                             </div>
                         </div>
 
-                        {}
+                        { }
                         <div
                             className="mt-6 pt-4 border-t border-base-300/50 dark:border-gray-700/50"
                             data-aos="fade-up"
@@ -552,13 +577,13 @@ const ProblemsPage = () => {
                     </div>
                 </div>
             </div>
-            {}
+            { }
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
                 <div className="bg-base-100/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-base-300/50 dark:border-gray-700/50 overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="table w-full">
-                            {}
+                            { }
                             <thead className="bg-gradient-to-r from-primary/5 to-secondary/5 dark:from-primary/10 dark:to-secondary/10">
                                 <tr className="border-b-2 border-primary/20 dark:border-primary/30">
                                     <th className="text-left py-6 px-6 font-bold text-base-content dark:text-white w-20 text-sm uppercase tracking-wider">
@@ -604,7 +629,6 @@ const ProblemsPage = () => {
                                     {filteredProblems.map((problem, index) => {
                                         const isSolved = solvedProblemIds.has(problem._id.toString());
                                         const isInTodo = isProblemInTodo(problem._id);
-                                        // Only animate first 10 rows to prevent performance issues
                                         const shouldAnimate = index < 10;
 
                                         return (
@@ -612,7 +636,7 @@ const ProblemsPage = () => {
                                                 key={problem._id}
                                                 {...(shouldAnimate && {
                                                     'data-aos': 'fade-up',
-                                                    'data-aos-delay': Math.min(index * 30, 300), // Cap delay at 300ms
+                                                    'data-aos-delay': Math.min(index * 30, 300),
                                                     'data-aos-duration': '300',
                                                 })}
                                                 className={`
@@ -624,7 +648,7 @@ const ProblemsPage = () => {
             ${index % 2 === 0 ? 'bg-base-50/50 dark:bg-gray-800/30' : 'bg-base-100/50 dark:bg-gray-800/50'}
           `}
                                             >
-                                                {}
+                                                { }
                                                 <td className="py-5 px-6" onClick={() => handleProblemClick(problem._id)}>
                                                     <div className="flex items-center">
                                                         <div className="w-8 h-8 bg-base-200 dark:bg-gray-700 rounded-lg flex items-center justify-center group-hover:bg-primary/20 dark:group-hover:bg-primary/30 transition-colors duration-200">
@@ -635,7 +659,7 @@ const ProblemsPage = () => {
                                                     </div>
                                                 </td>
 
-                                                {}
+                                                { }
                                                 <td className="py-5 px-6" onClick={() => handleProblemClick(problem._id)}>
                                                     <div className="flex items-center space-x-3">
                                                         <div className="p-2 bg-primary/10 dark:bg-primary/20 rounded-lg group-hover:bg-primary/20 dark:group-hover:bg-primary/30 transition-colors duration-200">
@@ -652,7 +676,7 @@ const ProblemsPage = () => {
                                                     </div>
                                                 </td>
 
-                                                {}
+                                                { }
                                                 <td className="py-5 px-6" onClick={() => handleProblemClick(problem._id)}>
                                                     <span className={`
               inline-flex items-center px-3 py-2 rounded-xl text-xs font-bold uppercase tracking-wider
@@ -664,7 +688,7 @@ const ProblemsPage = () => {
                                                     </span>
                                                 </td>
 
-                                                {}
+                                                { }
                                                 <td className="py-5 px-6" onClick={() => handleProblemClick(problem._id)}>
                                                     <div className="flex flex-wrap gap-2">
                                                         {problem.tags && problem.tags.split(",").map(tag => tag.trim()).slice(0, 2).map((tag, idx) => (
@@ -684,7 +708,7 @@ const ProblemsPage = () => {
                                                     </div>
                                                 </td>
 
-                                                {}
+                                                { }
                                                 <td className="py-5 px-6" onClick={() => handleProblemClick(problem._id)}>
                                                     <div className="flex justify-center">
                                                         {isSolved ? (
@@ -701,13 +725,17 @@ const ProblemsPage = () => {
                                                     </div>
                                                 </td>
 
-                                                {}
+
+
                                                 <td className="py-5 px-6">
                                                     <div className="flex justify-center">
                                                         <div className="tooltip tooltip-top" data-tip={isInTodo ? "Remove from Todo" : "Add to Todo"}>
                                                             <button
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
+
+                                                                    if (addingToTodo === problem._id || removingFromTodo === problem._id) return;
+
                                                                     if (isInTodo) {
                                                                         removeFromTodo(problem._id);
                                                                     } else {
@@ -721,12 +749,17 @@ const ProblemsPage = () => {
                                                                         ? 'bg-error/10 dark:bg-error/20 border-error/30 text-error dark:hover:bg-red-300 hover:bg-red-300'
                                                                         : 'bg-base-200 dark:hover:bg-green-300 hover:bg-green-300  dark:bg-gray-700 border-base-300 dark:border-gray-600 text-base-content/40 dark:text-gray-500 hover:border-primary/50 hover:text-primary/70'
                                                                     }
+                    ${(addingToTodo === problem._id || removingFromTodo === problem._id) ? 'cursor-not-allowed' : ''} 
                 `}
+                                                                disabled={addingToTodo === problem._id || removingFromTodo === problem._id}
                                                             >
-                                                                {isInTodo ? (
+
+                                                                {(addingToTodo === problem._id || removingFromTodo === problem._id) ? (
+                                                                    <span className="loading loading-spinner loading-sm text-primary"></span>
+                                                                ) : isInTodo ? (
                                                                     <Minus className="w-5 h-5 cursor-pointer" />
                                                                 ) : (
-                                                                    <Plus className="w-5 h-5 cursor-pointer " />
+                                                                    <Plus className="w-5 h-5 cursor-pointer" />
                                                                 )}
                                                             </button>
                                                         </div>
@@ -736,11 +769,12 @@ const ProblemsPage = () => {
                                         );
                                     })}
                                 </AnimatePresence>
+
                             </tbody>
                         </table>
                     </div>
 
-                    {}
+                    { }
                     {filteredProblems.length === 0 && (
                         <div className="text-center py-16 px-6">
                             <div className="relative mx-auto mb-8 w-24 h-24">
@@ -769,7 +803,7 @@ const ProblemsPage = () => {
                     )}
                 </div>
 
-                {}
+                { }
                 {filteredProblems.length > 0 && (
                     <div className="mt-8 text-center">
                         <div className="inline-flex items-center space-x-4 bg-base-100/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-full px-6 py-3 border border-primary/20 dark:border-primary/30 shadow-lg">
@@ -796,10 +830,9 @@ const ProblemsPage = () => {
                         onClick={() => setShowTodoPanel(true)}
                         className="btn btn-circle btn-lg bg-primary hover:bg-primary-focus text-white shadow-2xl border-2 border-primary-content/20"
 
-                        // --- ANIMATION LOGIC ---
                         animate={todoProblems.length > 0 ? {
-                            scale: [1, 1.1, 1], // Pulse effect
-                            y: [0, -20, 0],      // Jump effect
+                            scale: [1, 1.1, 1],
+                            y: [0, -20, 0],
                             boxShadow: [
                                 "0 0 0 rgba(59, 130, 246, 0)",
                                 "0 0 20px rgba(59, 130, 246, 0.7)",
@@ -807,11 +840,11 @@ const ProblemsPage = () => {
                             ]
                         } : {}}
 
-                        // --- TRANSITION LOGIC ---
+
                         transition={{
-                            duration: 5,     // One cycle duration
-                            repeat: Infinity,  // Loop forever
-                            ease: "easeInOut"  // Smooth jump
+                            duration: 5,
+                            repeat: Infinity,
+                            ease: "easeInOut"
                         }}
                     >
                         <div className="relative">
@@ -827,7 +860,7 @@ const ProblemsPage = () => {
                 </div>
             </div>
 
-            {}
+            { }
             <AnimatePresence>
                 {showTodoPanel && (
                     <motion.div
@@ -836,10 +869,10 @@ const ProblemsPage = () => {
                         exit={{ opacity: 0 }}
                         className="fixed inset-0 z-50 flex items-center justify-center p-4"
                     >
-                        {}
+                        { }
                         <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={handleClosePanel}></div>
 
-                        {}
+                        { }
                         <motion.div
                             initial={{ scale: 0.9, opacity: 0, y: 50 }}
                             animate={{ scale: 1, opacity: 1, y: 0 }}
@@ -847,7 +880,7 @@ const ProblemsPage = () => {
                             transition={{ type: "spring", stiffness: 300, damping: 30 }}
                             className="relative bg-base-100 dark:bg-gray-800 rounded-2xl shadow-2xl border border-base-300/50 dark:border-gray-700/50 w-full max-w-2xl max-h-[80vh] overflow-hidden"
                         >
-                            {}
+                            { }
                             <div className="flex items-center justify-between p-6 border-b border-base-300/50 dark:border-gray-700/50 bg-gradient-to-r from-primary/5 to-secondary/5 dark:from-primary/10 dark:to-secondary/10">
                                 <div className="flex items-center space-x-3">
                                     <div className="p-2 bg-primary/10 dark:bg-primary/20 rounded-lg">
@@ -868,8 +901,8 @@ const ProblemsPage = () => {
                                 </button>
                             </div>
 
-                            {}
-                            <div className="overflow-y-auto max-h-[calc(80vh-140px)]"> {}
+                            { }
+                            <div className="overflow-y-auto max-h-[calc(80vh-140px)]"> { }
                                 {todoLoading ? (
                                     <div className="flex items-center justify-center py-12">
                                         <div className="loading loading-spinner loading-md text-primary"></div>
@@ -938,7 +971,7 @@ const ProblemsPage = () => {
                                 )}
                             </div>
 
-                            {}
+                            { }
                             {todoProblems.length > 0 && (
                                 <div className="p-4 border-t border-base-300/50 dark:border-gray-700/50 bg-base-50/50 dark:bg-gray-800/50">
                                     <div className="flex items-center justify-between text-sm text-base-content/60 dark:text-gray-400">
@@ -955,6 +988,23 @@ const ProblemsPage = () => {
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            <AnimatePresence>
+                {notification.show && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 50, scale: 0.3 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 20, scale: 0.5 }}
+                        className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50"
+                    >
+                        <div className="bg-neutral text-neutral-content rounded-full shadow-lg px-6 py-3 flex items-center space-x-3">
+                            <CheckCircle2 className="w-5 h-5 text-success" />
+                            <span className="font-medium text-sm">{notification.message}</span>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
 
         </div>
     );

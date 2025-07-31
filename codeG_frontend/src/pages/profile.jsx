@@ -9,7 +9,6 @@ import { useNavigate } from 'react-router';
 import Particles from '@/components/ui/particlebg';
 
 
-// --- Icon Imports ---
 import {
     FaStar, FaCode, FaCheckCircle, FaTimesCircle, FaUser, FaCalendarAlt, FaMapMarkerAlt,
     FaTrophy, FaFire, FaChartPie, FaPlus, FaPython, FaJava, FaJsSquare, FaCamera, FaSave, FaTimes
@@ -31,43 +30,40 @@ const Card = ({ children, className = '' }) => (
 
 
 const ProfileCard = ({ user }) => {
-    // --- State Management ---
     const [isEditing, setIsEditing] = useState(false);
     const [isZoomed, setIsZoomed] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
 
-    // Form data state
     const [name, setName] = useState(user?.first_name || 'User');
     const [photoFile, setPhotoFile] = useState(null);
     const [photoPreview, setPhotoPreview] = useState(null);
+    const [notification, setNotification] = useState({ show: false, message: '', type: 'success' });
+
 
     const fileInputRef = useRef(null);
 
-    // --- Core Save Logic ---
+
     const handleSaveClick = async () => {
         setIsUploading(true);
         setUploadProgress(0);
 
+
+        setNotification({ ...notification, show: false });
+
         try {
-            let finalPhotoUrl = user.profile_pic_url; // Start with the existing URL
+            let finalPhotoUrl = user.profile_pic_url;
 
-            // --- Step 1: Upload new photo to Cloudinary (if one was selected) ---
             if (photoFile) {
-                // 1a: Get the signature from our backend
                 const signatureResponse = await axios_client.get('/video/upload/pic');
-                const { signature, timestamp, api_key, cloud_name, upload_url, public_id } = signatureResponse.data;
+                const { upload_url, ...signatureData } = signatureResponse.data;
 
-                // 1b: Create FormData for the direct Cloudinary upload
                 const formData = new FormData();
                 formData.append('file', photoFile);
-                formData.append('signature', signature);
-                formData.append('timestamp', timestamp);
-                formData.append('api_key', api_key);
-                formData.append('public_id', public_id);
+                for (const key in signatureData) {
+                    formData.append(key, signatureData[key]);
+                }
 
-
-                // 1c: Upload directly to Cloudinary
                 const uploadResponse = await axios.post(upload_url, formData, {
                     headers: { 'Content-Type': 'multipart/form-data' },
                     onUploadProgress: (progressEvent) => {
@@ -75,35 +71,29 @@ const ProfileCard = ({ user }) => {
                         setUploadProgress(progress);
                     },
                 });
-
-                // Get the new URL from Cloudinary's response
                 finalPhotoUrl = uploadResponse.data.secure_url;
             }
 
-            // --- Step 2: Save the final data to our backend ---
-            const updatePayload = {
-                first_name: name,
-                profile_pic_url: finalPhotoUrl, // Send either the new URL or the original one
-            };
+            const updatePayload = { first_name: name, profile_pic_url: finalPhotoUrl };
+            await axios_client.put(`/user/updateUser`, updatePayload);
 
-            const saveResponse = await axios_client.put(`/user/updateUser`, updatePayload);
 
-            alert('Profile updated successfully!');
-
-            // TODO: Dispatch a Redux action to update the user state globally
-            // dispatch(updateUserSuccess(saveResponse.data.user));
+            setNotification({ show: true, message: 'Profile updated successfully!', type: 'success' });
 
             setIsEditing(false);
 
         } catch (error) {
             console.error("Failed to update profile:", error);
-            alert('Update failed. Please check the console and try again.');
+
+
+            setNotification({ show: true, message: 'Update failed. Please try again.', type: 'error' });
         } finally {
             setIsUploading(false);
             setUploadProgress(0);
+
+            setTimeout(() => setNotification(prev => ({ ...prev, show: false })), 3000);
         }
     };
-
     // --- Other Handlers (no changes) ---
     const handleEditClick = () => { setIsEditing(true); setName(user?.first_name || 'User'); setPhotoFile(null); setPhotoPreview(null); };
     const handleCancelClick = () => { setIsEditing(false); setPhotoFile(null); setPhotoPreview(null); };
@@ -117,7 +107,7 @@ const ProfileCard = ({ user }) => {
     return (
         <>
             <Card className="items-center text-center">
-                {}
+                { }
                 <div className="avatar relative group">
                     <div className="w-32 rounded-full ring ring-[#44444355] ring-offset-base-100 ring-offset-3 cursor-pointer" onClick={() => !isEditing && setIsZoomed(true)}>
                         <img src={avatarSrc} alt="User Avatar" />
@@ -130,7 +120,7 @@ const ProfileCard = ({ user }) => {
                     )}
                 </div>
 
-                {}
+                { }
                 {isEditing ? (
                     <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="input input-bordered w-full max-w-xs mt-6 text-center text-3xl font-bold" placeholder="Enter your name" disabled={isUploading} />
                 ) : (<h1 className="text-3xl font-bold mt-6">{user?.first_name || 'User'}</h1>)}
@@ -142,8 +132,27 @@ const ProfileCard = ({ user }) => {
                     <p className="flex items-center gap-3"><FaCalendarAlt /><span>Joined: {new Date(user.createdAt).toLocaleDateString('en-GB')}</span></p>
                 </div>
 
-                {}
+                { }
                 <div className="w-full mt-6 space-y-4">
+                    <AnimatePresence>
+                        {notification.show && (
+                            <motion.div
+                                initial={{ opacity: 0, y: -20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: 10 }}
+                            >
+                                <div
+                                    className={`alert text-sm p-3 ${notification.type === 'success' ? 'alert-success' : 'alert-error'
+                                        }`}
+                                >
+                                    <div className="flex-1 flex items-center gap-2">
+                                        {notification.type === 'success' ? <FaCheckCircle /> : <FaTimesCircle />}
+                                        <span>{notification.message}</span>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                     {isUploading && (
                         <div>
                             <progress className="progress progress-primary w-full" value={uploadProgress} max="100"></progress>
@@ -161,7 +170,7 @@ const ProfileCard = ({ user }) => {
                 </div>
             </Card>
 
-            {}
+            { }
             {isZoomed && (
                 <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 cursor-zoom-out" onClick={() => setIsZoomed(false)}>
                     <motion.img layoutId="profile-avatar" src={avatarSrc} alt="User Avatar - Zoomed" className="max-w-[90vw] max-h-[90vh] rounded-lg shadow-2xl object-contain" initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.5, opacity: 0 }} onClick={(e) => e.stopPropagation()} />
@@ -171,9 +180,7 @@ const ProfileCard = ({ user }) => {
     );
 };
 
-/**
- * A reusable card for displaying a single statistic.
- */
+
 const StatCard = ({ icon, title, value, unit = '', children }) => (
     <Card className="text-center">
         <div className="flex justify-center text-3xl text-primary mb-3">{icon}</div>
@@ -185,9 +192,6 @@ const StatCard = ({ icon, title, value, unit = '', children }) => (
     </Card>
 );
 
-/**
- * An interactive component to show and filter by problem difficulty.
- */
 const DifficultyBreakdown = ({ stats, activeFilter, onFilterChange }) => {
     const difficulties = [
         { level: 'Easy', solved: stats.easySolved, total: 3, color: 'text-success', icon: '🟢' },
@@ -224,71 +228,66 @@ const languageIcons = {
     'c++': <SiCplusplus className="text-blue-600" />,
 };
 
-/**
- * A rich table for displaying user submissions with filters.
- */
+
 const SubmissionsTable = ({ submissions }) => {
 
     const navigate = useNavigate();
 
     return (
-    
-    <div className="overflow-x-auto">
-        <table className="table w-full">
-            <thead>
-                <tr>
-                    <th>Problem</th>
-                    <th>Status</th>
-                    <th>Language</th>
-                    <th>Date</th>
-                </tr>
-            </thead>
-            <tbody>
-                <AnimatePresence>
-                    {submissions.map((sub) => (
-                     
-                        <motion.tr key={sub._id + new Date(sub.date).toLocaleTimeString()} layout initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="hover cursor-pointer" onClick={() => navigate(`/problems/${sub.problem_id}`)}>
-                             
-                            <td className="font-semibold">
-                                <div className="flex items-center gap-2">
-                                    <span className={`badge badge-xs border-none ${sub.problem_difficulty?.toLowerCase() === 'easy' ? 'bg-success' :
-                                        sub.problem_difficulty?.toLowerCase() === 'medium' ? 'bg-warning' :
-                                            sub.problem_difficulty?.toLowerCase() === 'hard' ? 'bg-error' : 'bg-base-300'
-                                        }`}></span>
-                                    {sub.problem_name}
-                                </div>
-                            </td>
-                            <td>
-                                <span className={`capitalize font-semibold flex items-center gap-2 ${sub.status === "accepted" ? "text-success" : "text-error"}`}>
-                                    {sub.status === "accepted" ? <FaCheckCircle /> : <FaTimesCircle />}
-                                    {sub.status.replace('_', ' ')}
-                                </span>
-                            </td>
-                            <td>
-                                <span className="flex items-center gap-2">
-                                    {languageIcons[sub.language?.toLowerCase()] || <FaCode />}
-                                    {sub.language || 'N/A'}
-                                </span>
-                            </td>
-                            <td>
-                                <div className="tooltip" data-tip={new Date(sub.date).toLocaleString()}>
-                                    <span className='text-xs text-base-content/70'>{formatDistanceToNow(new Date(sub.date), { addSuffix: true })}</span>
-                                </div>
-                            </td>
-                        </motion.tr>
-                    ))}
-                </AnimatePresence>
-            </tbody>
-        </table>
-    </div>
-);
+
+        <div className="overflow-x-auto">
+            <table className="table w-full">
+                <thead>
+                    <tr>
+                        <th>Problem</th>
+                        <th>Status</th>
+                        <th>Language</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <AnimatePresence>
+                        {submissions.map((sub) => (
+
+                            <motion.tr key={sub._id + new Date(sub.date).toLocaleTimeString()} layout initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="hover cursor-pointer" onClick={() => navigate(`/problems/${sub.problem_id}`)}>
+
+                                <td className="font-semibold">
+                                    <div className="flex items-center gap-2">
+                                        <span className={`badge badge-xs border-none ${sub.problem_difficulty?.toLowerCase() === 'easy' ? 'bg-success' :
+                                            sub.problem_difficulty?.toLowerCase() === 'medium' ? 'bg-warning' :
+                                                sub.problem_difficulty?.toLowerCase() === 'hard' ? 'bg-error' : 'bg-base-300'
+                                            }`}></span>
+                                        {sub.problem_name}
+                                    </div>
+                                </td>
+                                <td>
+                                    <span className={`capitalize font-semibold flex items-center gap-2 ${sub.status === "accepted" ? "text-success" : "text-error"}`}>
+                                        {sub.status === "accepted" ? <FaCheckCircle /> : <FaTimesCircle />}
+                                        {sub.status.replace('_', ' ')}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span className="flex items-center gap-2">
+                                        {languageIcons[sub.language?.toLowerCase()] || <FaCode />}
+                                        {sub.language || 'N/A'}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div className="tooltip" data-tip={new Date(sub.date).toLocaleString()}>
+                                        <span className='text-xs text-base-content/70'>{formatDistanceToNow(new Date(sub.date), { addSuffix: true })}</span>
+                                    </div>
+                                </td>
+                            </motion.tr>
+                        ))}
+                    </AnimatePresence>
+                </tbody>
+            </table>
+        </div>
+    );
 }
-/**
- * The calendar heatmap component.
- */
+
 let submissionData = undefined
 const CalendarHeatmap = ({ submissions }) => {
-    // ... (This self-contained component is already robust and needs no changes)
     submissionData = useMemo(() => {
         const data = { counts: new Map(), totalSubmissions: 0, activeDays: 0, maxStreak: 0 };
         const oneYearAgo = new Date(); oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
@@ -354,10 +353,6 @@ const CalendarHeatmap = ({ submissions }) => {
 };
 
 
-// =================================================================================
-//  2. MAIN PROFILE PAGE COMPONENT
-// =================================================================================
-
 const ProfilePage = () => {
     const user = useSelector((state) => state.auth.user);
     const [submissions, setSubmissions] = useState([]);
@@ -365,7 +360,7 @@ const ProfilePage = () => {
     const [error, setError] = useState(null);
     const [statusFilter, setStatusFilter] = useState('all');
     const [difficultyFilter, setDifficultyFilter] = useState('all');
-    
+
     useEffect(() => {
         const fetchSubmissions = async () => {
             if (!user?._id) { setLoading(false); return; }
@@ -413,14 +408,18 @@ const ProfilePage = () => {
             });
     }, [submissions, statusFilter, difficultyFilter]);
 
+
     if (loading) {
         return (
-            <div className="p-8 font-sans bg-base-200 min-h-screen grid grid-cols-1 lg:grid-cols-12 gap-6 animate-pulse">
-                <div className="lg:col-span-3 space-y-6"><div className="skeleton h-96 w-full"></div><div className="skeleton h-64 w-full"></div></div>
-                <div className="lg:col-span-9 space-y-6"><div className="skeleton h-32 w-full"></div><div className="skeleton h-48 w-full"></div><div className="skeleton h-64 w-full"></div></div>
+            <div className="flex justify-center items-center h-screen p-16">
+                <div className="relative">
+                    <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+                    <div className="absolute top-2 left-2 w-12 h-12 border-4 border-purple-500/20 border-t-purple-500 rounded-full animate-spin animation-delay-75"></div>
+                </div>
             </div>
         );
     }
+
 
     if (error) {
         return <div className="text-center text-error p-10 font-semibold">{error}</div>;
@@ -428,7 +427,7 @@ const ProfilePage = () => {
 
     return (
         <div className="p-4  sm:p-6 lg:p-8 font-sans bg-base-200 min-h-screen">
-             <div className="absolute inset-0 z-20 pointer-events-none">
+            <div className="absolute inset-0 z-20 pointer-events-none">
                 <Particles
                     particleColors={['#ffffff', '#ffffff']}
                     particleCount={180}
@@ -443,13 +442,13 @@ const ProfilePage = () => {
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-                {}
+                { }
                 <aside className="lg:col-span-3 space-y-6">
                     <ProfileCard user={user} />
                     <DifficultyBreakdown stats={stats} activeFilter={difficultyFilter} onFilterChange={setDifficultyFilter} />
                 </aside>
 
-                {}
+                { }
                 <main className="lg:col-span-9 space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <StatCard icon={<FaTrophy />} title="Problems Solved" value={stats.easySolved + stats.mediumSolved + stats.hardSolved} />
