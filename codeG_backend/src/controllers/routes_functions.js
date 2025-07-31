@@ -101,14 +101,14 @@ let register = async (req, res) => {
             subscribed: real_user.subscribed
         }
 
-  res.cookie("token", token, {
+        res.cookie("token", token, {
             sameSite: 'none',
             maxAge: 24 * 60 * 60 * 1000,
             overwrite: true,
             httpOnly: true,
             secure: true,
             domain: 'thealok.shop'
-            
+
         });
 
         res.status(201).json({
@@ -194,7 +194,7 @@ let login = async (req, res) => {
             httpOnly: true,
             secure: true,
             domain: 'thealok.shop'
-            
+
         });
 
 
@@ -389,15 +389,13 @@ const social_login = async (req, res) => {
             firebase_uid: real_user.firebase_uid
         };
 
-
-         res.cookie("token", token, {
+        res.cookie("token", token, {
             sameSite: 'none',
             maxAge: 24 * 60 * 60 * 1000,
             overwrite: true,
             httpOnly: true,
             secure: true,
-            domain: 'thealok.shop'
-            
+            domain: 'thealok.shop'  
         });
 
         res.status(200).json({

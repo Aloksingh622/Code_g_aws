@@ -29,7 +29,7 @@ const pairmode_routes=require("./routes/pairMode");
 
 
 app.use(cors({
-    origin: ["https://thealok.shop", "https://www.thealok.shop", "https://codeg.thealok.shop", "https://www.codeg.thealok.shop"],
+    origin: ["https://thealok.shop", "https://www.thealok.shop", "https://codeg.thealok.shop", "https://www.codeg.thealok.shop", "http://localhost:5173"],
     credentials:true
 }))
 
