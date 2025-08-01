@@ -587,7 +587,7 @@ const DSAProblemPage = () => {
 
 
     const handleSubmit = async () => {
-        // 1. Basic editor checks (no changes here)
+      
         if (!editorRef.current) { addToast("Editor is not ready.", "error"); return; }
         const userCode = editorRef.current.getValue();
         if (!userCode.trim()) { addToast("Cannot submit empty code.", "info"); return; }
@@ -596,7 +596,7 @@ const DSAProblemPage = () => {
         setSubmissionResult(null);
         addToast("Submitting for final evaluation...", "info");
 
-        // 2. Get contestId from URL (no changes here)
+        
         const queryParams = new URLSearchParams(location.search);
         const contestId = queryParams.get('contestId');
         console.log(problemData)
@@ -609,13 +609,14 @@ const DSAProblemPage = () => {
                 language: language,
                 contestId: contestId,
             });
+            
+
+            const result = submissionResponse.data;
             if (result.success) {
                 addToast("Code Accepted!", "success");
             } else {
                 addToast(result.errorMessage || "Test cases failed.", "error");
             }
-
-            const result = submissionResponse.data;
 
             if (result.success && result.contestId) {
 

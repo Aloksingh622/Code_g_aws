@@ -34,6 +34,7 @@ function Login() {
 
   const { is_authenticated, loading, error } = useSelector((state) => state.auth);
   const [is_password_visible, set_is_password_visible] = useState(false);
+  const [loginError, setLoginError] = useState(null);
 
   const {
     register,
@@ -56,9 +57,16 @@ function Login() {
     }
   }, [is_authenticated, navigate]);
 
-  const onSubmit = (data) => {
-    dispatch(user_login(data));
-  };
+
+    const onSubmit = async (data) => {
+    try {
+      await dispatch(user_login(data)).unwrap();
+    } catch (err) {
+     
+      window.alert( "Invalid credentials.");
+    }
+  }
+
 
   const handleSocialLogin = async (signInProvider) => {
     try {
@@ -71,8 +79,8 @@ function Login() {
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center p-4  overflow-hidden bg-gradient-to-br from-sky-100 via-violet-100 to-pink-100 dark:from-slate-800 dark:via-neutral-900 dark:to-slate-600  transition-colors">
-      {}
+    <div className="relative min-h-screen flex items-center justify-center p-4  overflow-hidden bg-gradient-to-br from-sky-100 via-violet-100 to-pink-100 dark:from-slate-800 dark:via-neutral-900 dark:to-slate-800  transition-colors">
+      { }
       <div className="absolute inset-0 z-20 pointer-events-none">
         <Particles
           particleColors={['#ffffff', '#ffffff']}
@@ -87,20 +95,24 @@ function Login() {
         />
       </div>
 
-      {}
+      { }
       <div
         data-aos="zoom-in-up"
         className="relative z-10 w-full max-w-md bg-base-100/10 backdrop-blur-md border border-gray-700 p-6 sm:p-8 rounded-2xl shadow-2xl"
       >
 
-        {}
+        { }
         <div className="text-center mb-8">
           <img src={logo} alt="CodeG Logo" className="h-16 w-16 mx-auto mb-4 rounded-xl shadow-lg" />
           <h2 className="text-3xl font-bold text-black dark:text-white ">Welcome Back</h2>
           <p className="text-gray-400 mt-2">Sign in to continue your journey.</p>
         </div>
 
-        {}
+        {loginError && (
+          <div className="bg-red-500/20 border border-red-500 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg relative text-center mb-6" role="alert">
+            <span className="block sm:inline">{loginError}</span>
+          </div>
+        )}
         <div className="flex justify-center gap-4">
           <button onClick={() => handleSocialLogin(signInWithGoogle)} aria-label="Continue with Google" className="btn btn-outline btn-square border-gray-600 hover:bg-white/10 transition-all duration-300">
             <FcGoogle size={24} />
@@ -110,14 +122,14 @@ function Login() {
           </button>
         </div>
 
-        {}
+        { }
         <div className="relative flex py-5 items-center">
           <div className="flex-grow border-t border-gray-700"></div>
           <span className="flex-shrink mx-4 text-xs text-gray-500 font-semibold uppercase">Or continue with</span>
           <div className="flex-grow border-t border-gray-700"></div>
         </div>
 
-        {}
+        { }
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
             <input
@@ -164,7 +176,7 @@ function Login() {
           </div>
         </form>
 
-        {}
+        { }
         <p className="text-center text-sm text-gray-400 mt-8">
           Don’t have an account?{" "}
           <a href="/signup" className="font-semibold text-primary hover:underline">

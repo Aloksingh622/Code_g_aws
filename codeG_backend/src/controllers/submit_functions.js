@@ -122,6 +122,7 @@ const submit_the_code = async (req, res) => {
         }
 
         // Final Response
+        console.log(finalStatus)
         res.status(200).json({
             success: finalStatus === "accepted",
             status: finalStatus,

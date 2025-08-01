@@ -29,16 +29,17 @@ let create_problem = async (req, res) => {
           
 
             let token_array = testcase_token.map((val) => val.token);
+            console.log(testcase_token)
 
             const final_result = await submit_token(token_array);
-
+   
 
             for (const result of final_result) {
 
-            
+               console.log(result.status_id)   
 
                 if (result.status_id != 3) {
-                  
+                  console.log(result)
                     return res.status(400).json({
                         message: "some of testcase is falied ..please check your code and try again "
                     });

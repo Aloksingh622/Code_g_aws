@@ -93,7 +93,7 @@ function Signup() {
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center  bg-gradient-to-br from-sky-100 via-violet-100 to-pink-100 dark:from-slate-800 dark:via-neutral-900 dark:to-slate-600  transition-colors overflow-hidden">
+    <div className="relative min-h-screen flex items-center justify-center  bg-gradient-to-br from-sky-100 via-violet-100 to-pink-100 dark:from-slate-800 dark:via-neutral-900 dark:to-slate-800  transition-colors overflow-hidden">
       <div className="absolute inset-0 z-20 pointer-events-none">
         <Particles
           particleColors={['#ffffff', '#ffffff']}
