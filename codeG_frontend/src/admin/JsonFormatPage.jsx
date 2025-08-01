@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Download, Copy, Check, FileJson, Code2, Sparkles } from 'lucide-react';
-import Particles from '../components/ui/particlebg';
-
 
 const aosStyles = `
     [data-aos] {
@@ -142,77 +140,77 @@ export default function JsonFormatPage() {
   "tags": "Array, Hashmap, Two Pointers",
   "visible_testcase": [
     {
-      "input": "[1, 5, 7, -1, 5]\n6",
+      "input": "[1, 5, 7, -1, 5]\\n6",
       "output": "3",
       "explanation": "Pairs are: (1,5), (7,-1), and another (1,5) considering repeated 5."
     },
     {
-      "input": "[1, 1, 1, 1]\n2",
+      "input": "[1, 1, 1, 1]\\n2",
       "output": "6",
       "explanation": "All 1s form 6 unique pairs with sum 2."
     },
     {
-      "input": "[1, 2, 3, 4, 5]\n9",
+      "input": "[1, 2, 3, 4, 5]\\n9",
       "output": "1",
       "explanation": "Only one pair: (4,5)."
     }
   ],
   "hidden_testcase": [
     {
-      "input": "[3, 3, 3, 3]\n6",
+      "input": "[3, 3, 3, 3]\\n6",
       "output": "6"
     },
     {
-      "input": "[0, -1, 2, -3, 1]\n-2",
+      "input": "[0, -1, 2, -3, 1]\\n-2",
       "output": "1"
     },
     {
-      "input": "[10, 12, 10, 15, -1, 7, 6, 5]\n16",
+      "input": "[10, 12, 10, 15, -1, 7, 6, 5]\\n16",
       "output": "3"
     },
     {
-      "input": "[]\n5",
+      "input": "[]\\n5",
       "output": "0"
     },
     {
-      "input": "[1]\n2",
+      "input": "[1]\\n2",
       "output": "0"
     }
   ],
   "start_code": [
     {
       "language": "python",
-      "initial_code": "from typing import List\nimport json\n\ndef count_pairs_with_sum(arr: List[int], target: int) -> int:\n    # Your code here\n    return 0\n\ntry:\n    arr = json.loads(input().strip())\n    target = int(input().strip())\n    result = count_pairs_with_sum(arr, target)\n    print(result)\nexcept Exception as e:\n    print(0)"
+      "initial_code": "from typing import List\\nimport json\\n\\ndef count_pairs_with_sum(arr: List[int], target: int) -> int:\\n    # Your code here\\n    return 0\\n\\ntry:\\n    arr = json.loads(input().strip())\\n    target = int(input().strip())\\n    result = count_pairs_with_sum(arr, target)\\n    print(result)\\nexcept Exception as e:\\n    print(0)"
     },
     {
       "language": "c++",
-      "initial_code": "#include <iostream>\n#include <vector>\n#include <unordered_map>\n#include <sstream>\n#include <string>\nusing namespace std;\n\nint countPairsWithSum(vector<int>& arr, int target) {\n    // Your code here\n    return 0;\n}\n\nvector<int> parseArray(string s) {\n    vector<int> arr;\n    s.erase(0, 1); // remove '['\n    s.erase(s.size() - 1); // remove ']'\n    if (s.empty()) return arr;\n    \n    stringstream ss(s);\n    string item;\n    while (getline(ss, item, ',')) {\n        arr.push_back(stoi(item));\n    }\n    return arr;\n}\n\nint main() {\n    string line;\n    getline(cin, line);\n    vector<int> arr = parseArray(line);\n    \n    int target;\n    cin >> target;\n    \n    cout << countPairsWithSum(arr, target) << endl;\n    return 0;\n}"
+      "initial_code": "#include <iostream>\\n#include <vector>\\n#include <unordered_map>\\n#include <sstream>\\n#include <string>\\nusing namespace std;\\n\\nint countPairsWithSum(vector<int>& arr, int target) {\\n    // Your code here\\n    return 0;\\n}\\n\\nvector<int> parseArray(string s) {\\n    vector<int> arr;\\n    s.erase(0, 1); // remove '['\\n    s.erase(s.size() - 1); // remove ']'\\n    if (s.empty()) return arr;\\n    \\n    stringstream ss(s);\\n    string item;\\n    while (getline(ss, item, ',')) {\\n        arr.push_back(stoi(item));\\n    }\\n    return arr;\\n}\\n\\nint main() {\\n    string line;\\n    getline(cin, line);\\n    vector<int> arr = parseArray(line);\\n    \\n    int target;\\n    cin >> target;\\n    \\n    cout << countPairsWithSum(arr, target) << endl;\\n    return 0;\\n}"
     },
     {
       "language": "java",
-      "initial_code": "import java.util.*;\n\npublic class Main {\n    public static int countPairsWithSum(int[] arr, int target) {\n        // Your code here\n        return 0;\n    }\n\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        String line = sc.nextLine().trim();\n        \n        // Parse array\n        int[] arr;\n        if (line.equals(\"[]\")) {\n            arr = new int[0];\n        } else {\n            line = line.substring(1, line.length() - 1); // remove brackets\n            String[] parts = line.split(\",\");\n            arr = new int[parts.length];\n            for (int i = 0; i < parts.length; i++) {\n                arr[i] = Integer.parseInt(parts[i].trim());\n            }\n        }\n        \n        int target = sc.nextInt();\n        System.out.println(countPairsWithSum(arr, target));\n    }\n}"
+      "initial_code": "import java.util.*;\\n\\npublic class Main {\\n    public static int countPairsWithSum(int[] arr, int target) {\\n        // Your code here\\n        return 0;\\n    }\\n\\n    public static void main(String[] args) {\\n        Scanner sc = new Scanner(System.in);\\n        String line = sc.nextLine().trim();\\n        \\n        // Parse array\\n        int[] arr;\\n        if (line.equals(\\"[]\\")) {\\n            arr = new int[0];\\n        } else {\\n            line = line.substring(1, line.length() - 1); // remove brackets\\n            String[] parts = line.split(\\",\\");\\n            arr = new int[parts.length];\\n            for (int i = 0; i < parts.length; i++) {\\n                arr[i] = Integer.parseInt(parts[i].trim());\\n            }\\n        }\\n        \\n        int target = sc.nextInt();\\n        System.out.println(countPairsWithSum(arr, target));\\n    }\\n}"
     },
     {
       "language": "javascript",
-      "initial_code": "function countPairsWithSum(arr, target) {\n    // Your code here\n    return 0;\n}\n\nconst readline = require(\"readline\");\nconst rl = readline.createInterface({ input: process.stdin, output: process.stdout });\n\nlet input = [];\nrl.on(\"line\", function (line) { input.push(line.trim()); });\nrl.on(\"close\", function () {\n    try {\n        const arr = JSON.parse(input[0]);\n        const target = parseInt(input[1]);\n        console.log(countPairsWithSum(arr, target));\n    } catch (e) {\n        console.log(0);\n    }\n});"
+      "initial_code": "function countPairsWithSum(arr, target) {\\n    // Your code here\\n    return 0;\\n}\\n\\nconst readline = require(\\"readline\\");\\nconst rl = readline.createInterface({ input: process.stdin, output: process.stdout });\\n\\nlet input = [];\\nrl.on(\\"line\\", function (line) { input.push(line.trim()); });\\nrl.on(\\"close\\", function () {\\n    try {\\n        const arr = JSON.parse(input[0]);\\n        const target = parseInt(input[1]);\\n        console.log(countPairsWithSum(arr, target));\\n    } catch (e) {\\n        console.log(0);\\n    }\\n});"
     }
   ],
   "problem_solution": [
     {
       "language": "python",
-      "complete_code": "from typing import List\nimport json\n\ndef count_pairs_with_sum(arr: List[int], target: int) -> int:\n    if len(arr) < 2:\n        return 0\n    \n    freq = {}\n    count = 0\n    \n    for num in arr:\n        complement = target - num\n        if complement in freq:\n            count += freq[complement]\n        freq[num] = freq.get(num, 0) + 1\n    \n    return count\n\ntry:\n    arr = json.loads(input().strip())\n    target = int(input().strip())\n    result = count_pairs_with_sum(arr, target)\n    print(result)\nexcept Exception as e:\n    print(0)"
+      "complete_code": "from typing import List\\nimport json\\n\\ndef count_pairs_with_sum(arr: List[int], target: int) -> int:\\n    if len(arr) < 2:\\n        return 0\\n    \\n    freq = {}\\n    count = 0\\n    \\n    for num in arr:\\n        complement = target - num\\n        if complement in freq:\\n            count += freq[complement]\\n        freq[num] = freq.get(num, 0) + 1\\n    \\n    return count\\n\\ntry:\\n    arr = json.loads(input().strip())\\n    target = int(input().strip())\\n    result = count_pairs_with_sum(arr, target)\\n    print(result)\\nexcept Exception as e:\\n    print(0)"
     },
     {
       "language": "c++",
-      "complete_code": "#include <iostream>\n#include <vector>\n#include <unordered_map>\n#include <sstream>\n#include <string>\nusing namespace std;\n\nint countPairsWithSum(vector<int>& arr, int target) {\n    if (arr.size() < 2) return 0;\n    \n    unordered_map<int, int> freq;\n    int count = 0;\n    \n    for (int num : arr) {\n        int complement = target - num;\n        if (freq.find(complement) != freq.end()) {\n            count += freq[complement];\n        }\n        freq[num]++;\n    }\n    \n    return count;\n}\n\nvector<int> parseArray(string s) {\n    vector<int> arr;\n    s.erase(0, 1); // remove '['\n    s.erase(s.size() - 1); // remove ']'\n    if (s.empty()) return arr;\n    \n    stringstream ss(s);\n    string item;\n    while (getline(ss, item, ',')) {\n        arr.push_back(stoi(item));\n    }\n    return arr;\n}\n\nint main() {\n    string line;\n    getline(cin, line);\n    vector<int> arr = parseArray(line);\n    \n    int target;\n    cin >> target;\n    \n    cout << countPairsWithSum(arr, target) << endl;\n    return 0;\n}"
+      "complete_code": "#include <iostream>\\n#include <vector>\\n#include <unordered_map>\\n#include <sstream>\\n#include <string>\\nusing namespace std;\\n\\nint countPairsWithSum(vector<int>& arr, int target) {\\n    if (arr.size() < 2) return 0;\\n    \\n    unordered_map<int, int> freq;\\n    int count = 0;\\n    \\n    for (int num : arr) {\\n        int complement = target - num;\\n        if (freq.find(complement) != freq.end()) {\\n            count += freq[complement];\\n        }\\n        freq[num]++;\\n    }\\n    \\n    return count;\\n}\\n\\nvector<int> parseArray(string s) {\\n    vector<int> arr;\\n    s.erase(0, 1); // remove '['\\n    s.erase(s.size() - 1); // remove ']'\\n    if (s.empty()) return arr;\\n    \\n    stringstream ss(s);\\n    string item;\\n    while (getline(ss, item, ',')) {\\n        arr.push_back(stoi(item));\\n    }\\n    return arr;\\n}\\n\\nint main() {\\n    string line;\\n    getline(cin, line);\\n    vector<int> arr = parseArray(line);\\n    \\n    int target;\\n    cin >> target;\\n    \\n    cout << countPairsWithSum(arr, target) << endl;\\n    return 0;\\n}"
     },
     {
       "language": "java",
-      "complete_code": "import java.util.*;\n\npublic class Main {\n    public static int countPairsWithSum(int[] arr, int target) {\n        if (arr.length < 2) return 0;\n        \n        Map<Integer, Integer> freq = new HashMap<>();\n        int count = 0;\n        \n        for (int num : arr) {\n            int complement = target - num;\n            count += freq.getOrDefault(complement, 0);\n            freq.put(num, freq.getOrDefault(num, 0) + 1);\n        }\n        \n        return count;\n    }\n\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        String line = sc.nextLine().trim();\n        \n        // Parse array\n        int[] arr;\n        if (line.equals(\"[]\")) {\n            arr = new int[0];\n        } else {\n            line = line.substring(1, line.length() - 1); // remove brackets\n            String[] parts = line.split(\",\");\n            arr = new int[parts.length];\n            for (int i = 0; i < parts.length; i++) {\n                arr[i] = Integer.parseInt(parts[i].trim());\n            }\n        }\n        \n        int target = sc.nextInt();\n        System.out.println(countPairsWithSum(arr, target));\n    }\n}"
+      "complete_code": "import java.util.*;\\n\\npublic class Main {\\n    public static int countPairsWithSum(int[] arr, int target) {\\n        if (arr.length < 2) return 0;\\n        \\n        Map<Integer, Integer> freq = new HashMap<>();\\n        int count = 0;\\n        \\n        for (int num : arr) {\\n            int complement = target - num;\\n            count += freq.getOrDefault(complement, 0);\\n            freq.put(num, freq.getOrDefault(num, 0) + 1);\\n        }\\n        \\n        return count;\\n    }\\n\\n    public static void main(String[] args) {\\n        Scanner sc = new Scanner(System.in);\\n        String line = sc.nextLine().trim();\\n        \\n        // Parse array\\n        int[] arr;\\n        if (line.equals(\\"[]\\")) {\\n            arr = new int[0];\\n        } else {\\n            line = line.substring(1, line.length() - 1); // remove brackets\\n            String[] parts = line.split(\\",\\");\\n            arr = new int[parts.length];\\n            for (int i = 0; i < parts.length; i++) {\\n                arr[i] = Integer.parseInt(parts[i].trim());\\n            }\\n        }\\n        \\n        int target = sc.nextInt();\\n        System.out.println(countPairsWithSum(arr, target));\\n    }\\n}"
     },
     {
       "language": "javascript",
-      "complete_code": "function countPairsWithSum(arr, target) {\n    if (arr.length < 2) return 0;\n    \n    const freq = {};\n    let count = 0;\n    \n    for (let num of arr) {\n        const complement = target - num;\n        count += freq[complement] || 0;\n        freq[num] = (freq[num] || 0) + 1;\n    }\n    \n    return count;\n}\n\nconst readline = require(\"readline\");\nconst rl = readline.createInterface({ input: process.stdin, output: process.stdout });\n\nlet input = [];\nrl.on(\"line\", function (line) { input.push(line.trim()); });\nrl.on(\"close\", function () {\n    try {\n        const arr = JSON.parse(input[0]);\n        const target = parseInt(input[1]);\n        console.log(countPairsWithSum(arr, target));\n    } catch (e) {\n        console.log(0);\n    }\n});"
+      "complete_code": "function countPairsWithSum(arr, target) {\\n    if (arr.length < 2) return 0;\\n    \\n    const freq = {};\\n    let count = 0;\\n    \\n    for (let num of arr) {\\n        const complement = target - num;\\n        count += freq[complement] || 0;\\n        freq[num] = (freq[num] || 0) + 1;\\n    }\\n    \\n    return count;\\n}\\n\\nconst readline = require(\\"readline\\");\\nconst rl = readline.createInterface({ input: process.stdin, output: process.stdout });\\n\\nlet input = [];\\nrl.on(\\"line\\", function (line) { input.push(line.trim()); });\\nrl.on(\\"close\\", function () {\\n    try {\\n        const arr = JSON.parse(input[0]);\\n        const target = parseInt(input[1]);\\n        console.log(countPairsWithSum(arr, target));\\n    } catch (e) {\\n        console.log(0);\\n    }\\n});"
     }
   ]
 }`;
@@ -246,19 +244,6 @@ export default function JsonFormatPage() {
                 ? 'bg-gray-900 text-white' 
                 : 'bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 text-gray-900'
         }`}>
-            <div className="absolute inset-0 z-0 pointer-events-none">
-                <Particles
-                    particleColors={['#ffffff', '#ffffff']}
-                    particleCount={180}
-                    particleSpread={10}
-                    speed={0.1}
-                    particleBaseSize={100}
-                    moveParticlesOnHover={true}
-                    alphaParticles={false}
-                    disableRotation={false}
-                    className="absolute inset-0 w-full h-full"
-                />
-            </div>
             {/* Background Pattern */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className={`absolute inset-0 ${
@@ -352,7 +337,7 @@ export default function JsonFormatPage() {
                 </header>
 
                 {/* Main Content */}
-                <div className="max-w-5xl mx-auto">
+                <div className="max-w-6xl mx-auto">
                     <div 
                         className={`rounded-3xl shadow-2xl overflow-hidden border transition-all duration-300 ${
                             isDarkMode 
@@ -414,7 +399,7 @@ export default function JsonFormatPage() {
                                             isDarkMode 
                                                 ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white'
                                                 : 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white'
-                                        } shadow-lg`}
+                        } shadow-lg`}
                                     >
                                         <Download className="w-4 h-4" />
                                         Download JSON
@@ -454,15 +439,17 @@ export default function JsonFormatPage() {
                                     </div>
                                 </div>
                                 
-                                <div className={`p-6 overflow-x-auto ${
+                                <div className={`overflow-auto ${
                                     isDarkMode ? 'bg-gray-900' : 'bg-white'
-                                }`}>
-                                    <pre className={`text-sm leading-relaxed ${
+                                }`} style={{ maxHeight: '70vh' }}>
+                                    <pre className={`p-6 text-sm leading-relaxed whitespace-pre font-mono ${
                                         isDarkMode ? 'text-gray-100' : 'text-gray-800'
-                                    }`}>
-                                        <code className="font-mono">
-                                            {jsonFormatExample}
-                                        </code>
+                                    }`} style={{ 
+                                        whiteSpace: 'pre',
+                                        wordWrap: 'normal',
+                                        overflowWrap: 'normal'
+                                    }}>
+                                        {jsonFormatExample}
                                     </pre>
                                 </div>
                             </div>
