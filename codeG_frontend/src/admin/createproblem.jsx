@@ -6,6 +6,7 @@ import axios_client from "../utils/axiosconfig"; // Your configured axios instan
 import Particles from "@/components/ui/particlebg";
 import AOS from 'aos'; // Import AOS
 import 'aos/dist/aos.css'; // Import AOS styles
+import { Link } from "react-router";
 
 // --- Helper component to handle Monaco Editor with React Hook Form ---
 const MonacoFormField = ({ control, name, language, isDark }) => {
@@ -141,10 +142,17 @@ export default function CreateProblemPanel() {
                                     <p className="text-base-content/60 text-sm">Have a problem in JSON format? Upload it here.</p>
                                 </div>
                             </div>
-                            <input type="file" id="json-upload" accept=".json" className="hidden" onChange={handleJsonUpload} />
-                            <label htmlFor="json-upload" className="btn btn-secondary btn-outline gap-2 cursor-pointer">
-                                <UploadCloud className="w-4 h-4" /> Upload JSON
-                            </label>
+                            <div className="flex items-center gap-3">
+                                {/* This button is now a Link that opens a new tab */}
+                                <Link to="/admin/problem/json-format"  rel="noopener noreferrer" className="btn btn-info btn-outline btn-sm gap-2">
+                                     <FileJson className="w-4 h-4" />
+                                     View Format
+                                </Link>
+                                <input type="file" id="json-upload" accept=".json" className="hidden" onChange={handleJsonUpload} />
+                                <label htmlFor="json-upload" className="btn btn-secondary btn-outline btn-sm gap-2 cursor-pointer">
+                                    <UploadCloud className="w-4 h-4" /> Upload JSON
+                                </label>
+                            </div>
                         </div>
                     </div>
                 </div>

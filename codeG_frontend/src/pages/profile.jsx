@@ -94,7 +94,7 @@ const ProfileCard = ({ user }) => {
             setTimeout(() => setNotification(prev => ({ ...prev, show: false })), 3000);
         }
     };
-    // --- Other Handlers (no changes) ---
+    
     const handleEditClick = () => { setIsEditing(true); setName(user?.first_name || 'User'); setPhotoFile(null); setPhotoPreview(null); };
     const handleCancelClick = () => { setIsEditing(false); setPhotoFile(null); setPhotoPreview(null); };
     const handlePhotoInputChange = (e) => {
@@ -194,9 +194,9 @@ const StatCard = ({ icon, title, value, unit = '', children }) => (
 
 const DifficultyBreakdown = ({ stats, activeFilter, onFilterChange }) => {
     const difficulties = [
-        { level: 'Easy', solved: stats.easySolved, total: 3, color: 'text-success', icon: '🟢' },
-        { level: 'Medium', solved: stats.mediumSolved, total: 3, color: 'text-warning', icon: '🟡' },
-        { level: 'Hard', solved: stats.hardSolved, total: 3, color: 'text-error', icon: '🔴' }
+        { level: 'Easy', solved: stats.easySolved, total: 12, color: 'text-success', icon: '🟢' },
+        { level: 'Medium', solved: stats.mediumSolved, total: 8, color: 'text-warning', icon: '🟡' },
+        { level: 'Hard', solved: stats.hardSolved, total: 2, color: 'text-error', icon: '🔴' }
     ];
 
     return (

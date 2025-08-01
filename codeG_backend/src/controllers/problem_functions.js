@@ -3,7 +3,8 @@ let user = require("../models/user")
 let submission = require("../models/submission_schema")
 const { GoogleGenAI } = require("@google/genai");
 let { language_number, submit_batch, submit_token } = require("../utils/problem_utlis");
-const SolutionVideo = require("../models/solutionVideo")
+const SolutionVideo = require("../models/solutionVideo");
+const { getContestLeaderboard } = require("./contest_fun");
 
 
 let create_problem = async (req, res) => {
@@ -26,20 +27,20 @@ let create_problem = async (req, res) => {
 
 
             const testcase_token = await submit_batch(submissions);
-          
+
 
             let token_array = testcase_token.map((val) => val.token);
             console.log(testcase_token)
 
             const final_result = await submit_token(token_array);
-   
+
 
             for (const result of final_result) {
 
-               console.log(result.status_id)   
+                console.log(result.status_id)
 
                 if (result.status_id != 3) {
-                  console.log(result)
+                    console.log(result)
                     return res.status(400).json({
                         message: "some of testcase is falied ..please check your code and try again "
                     });
@@ -109,21 +110,21 @@ let update_problem = async (req, res) => {
 
 
             const testcase_token = await submit_batch(submissions);
-       
+
 
             let token_array = testcase_token.map((val) => val.token);
 
             const final_result = await submit_token(token_array);
 
             for (const result of final_result) {
-              
+
                 if (result.status_id != 3) {
                     return res.status(400).send("some of testcase is falied ..please check your code and try again ");
                 }
             }
         }
 
-     
+
         let updated_problem = await problem.findOneAndUpdate(update_by, { ...req.body }, { runValidators: true, new: true })
         if (!update_problem) {
             return res.status(404).send("problem is not found in database please check your name,id or serial")
@@ -277,18 +278,20 @@ const all_submissions = async (req, res) => {
                 select: "title difficulty"
             })
             .select("status createdAt problem_id language ");
-      
+
+
+
         const formatted = submissions.map((s) => ({
             problem_name: s.problem_id?.title || "Unknown",
             problem_difficulty: s.problem_id?.difficulty,
-            problem_id: s.problem_id._id,
+            problem_id: s.problem_id?._id,
             status: s.status,
             date: s.createdAt,
-            language:s.language
+            language: s.language
         }));
 
-   
 
+       
         res.status(201).json({
             success: true,
             submissions: formatted
@@ -352,10 +355,10 @@ const ai_chat = async (req, res) => {
 
         const { messages, title, description, testCases, startCode } = req.body;
 
-        
+
 
         const ai = new GoogleGenAI({ apiKey: process.env.gemini_key_1 });
-       
+
 
         async function main() {
             const response = await ai.models.generateContent({
@@ -474,7 +477,7 @@ Focus on growth through consistent practice and guided logic
 const potd = async (req, res) => {
     try {
 
-     
+
         const getProblem = await problem.findOne({ isProblemOfTheDay: true });
 
         if (!getProblem)

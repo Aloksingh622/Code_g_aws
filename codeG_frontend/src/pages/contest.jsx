@@ -3,55 +3,79 @@ import axios_client from '../utils/axiosconfig';
 import { Link } from 'react-router';
 import { Calendar, Clock, Users, Check, Trophy, Code, Award, Star, ChevronRight, Timer, Play, Eye } from 'lucide-react';
 
-// --- Custom Imports for Themed Style & Animation ---
+
 import AOS from 'aos';
 import 'aos/dist/aos.css';
-import Particles from '../components/ui/particlebg'; // Adjust path if needed
+import Particles from '../components/ui/particlebg'; 
 import { useSelector } from 'react-redux';
 import LoginAccessCard from '@/component/loginmessage';
 
 
 const ContestCard = ({ contest, onRegister, isRegistering }) => {
     const user = useSelector((state) => state.auth.user);
+  const getStatus = () => {
+    const now = new Date();
+    const start = new Date(contest.startTime);
+    const end = new Date(contest.endTime);
 
-    const getStatus = () => {
-        const now = new Date();
-        const start = new Date(contest.startTime);
-        const end = new Date(contest.endTime);
+    console.log('Status check:', {
+        now: now.toISOString(),
+        nowLocal: now.toString(),
+        start: start.toISOString(),
+        startLocal: start.toString(),
+        end: end.toISOString(),
+        endLocal: end.toString(),
+        nowTime: now.getTime(),
+        startTime: start.getTime(),
+        endTime: end.getTime(),
+        isBeforeStart: now < start,
+        isAfterStart: now >= start,
+        isBeforeEnd: now <= end,
+        isAfterEnd: now > end
+    });
 
-        if (now < start) return {
+    if (now < start) {
+        console.log('Contest is UPCOMING');
+        return {
             text: "Upcoming",
             color: "bg-gradient-to-r from-blue-500 to-indigo-500",
             icon: <Calendar className="w-4 h-4" />,
             type: "upcoming"
         };
-        if (now >= start && now <= end) return {
+    }
+    if (now >= start && now <= end) {
+        console.log('Contest is LIVE');
+        return {
             text: "Live Now",
             color: "bg-gradient-to-r from-green-500 to-emerald-500 animate-pulse",
             icon: <Timer className="w-4 h-4 animate-spin" />,
             type: "live"
         };
-        return {
-            text: "Ended",
-            color: "bg-gradient-to-r from-gray-500 to-slate-500",
-            icon: <Award className="w-4 h-4" />,
-            type: "ended"
-        };
+    }
+    console.log('Contest has ENDED');
+    return {
+        text: "Ended",
+        color: "bg-gradient-to-r from-gray-500 to-slate-500",
+        icon: <Award className="w-4 h-4" />,
+        type: "ended"
     };
+};
 
     const status = getStatus();
 
-    const formatDateTime = (isoString) => {
-        const date = new Date(isoString);
-        return date.toLocaleString([], {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-    };
-
+ const formatDateTime = (isoString) => {
+    const date = new Date(isoString);
+    
+   
+    return date.toLocaleString('en-IN', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: 'Asia/Kolkata',
+        timeZoneName: 'short'
+    });}
     const calculateDuration = (start, end) => {
         const durationMs = new Date(end) - new Date(start);
         const minutes = Math.floor(durationMs / 60000);
@@ -64,21 +88,29 @@ const ContestCard = ({ contest, onRegister, isRegistering }) => {
         return `${days}d ${remainingHours}h`;
     };
 
-    const getTimeToStart = () => {
-        const now = new Date();
-        const start = new Date(contest.startTime);
-        if (now >= start) return null;
+   const getTimeToStart = () => {
+    const now = new Date();
+    const start = new Date(contest.startTime);
+    
+    console.log('Time to start calculation:', {
+        now: now.toISOString(),
+        start: start.toISOString(),
+        nowTime: now.getTime(),
+        startTime: start.getTime(),
+        diff: start.getTime() - now.getTime()
+    });
+    
+    if (now >= start) return null;
 
-        const diffMs = start - now;
-        const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+    const diffMs = start - now;
+    const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
 
-        if (days > 0) return `Starts in ${days}d ${hours}h`;
-        if (hours > 0) return `Starts in ${hours}h ${minutes}m`;
-        return `Starts in ${minutes}m`;
-    };
-
+    if (days > 0) return `Starts in ${days}d ${hours}h`;
+    if (hours > 0) return `Starts in ${hours}h ${minutes}m`;
+    return `Starts in ${minutes}m`;
+};
     const getTimeRemaining = () => {
         const now = new Date();
         const end = new Date(contest.endTime);
@@ -100,21 +132,20 @@ const ContestCard = ({ contest, onRegister, isRegistering }) => {
     const timeToStart = getTimeToStart();
     const timeRemaining = getTimeRemaining();
 
-    // FIXED: Check if user is already registered by looking in participants array
-    // AFTER (Correct):
+    
     const isUserRegistered = user?._id ?
         contest.participants?.some(participantId =>
             participantId.toString() === user._id.toString()
         ) : false;
     const handleCardClick = () => {
         if (status.type === 'live' && isUserRegistered) {
-            // Route to contest arena
+           
             window.location.href = `/contest/${contest._id}/arena`;
         } else if (status.type === 'ended') {
-            // Route to contest results
+            
             window.location.href = `/contest/${contest._id}/results`;
         }
-        // For upcoming contests, do nothing on card click
+       
     };
 
     const isClickable = (status.type === 'live' && isUserRegistered) || status.type === 'ended';
@@ -130,7 +161,7 @@ const ContestCard = ({ contest, onRegister, isRegistering }) => {
                     : 'bg-white/10 dark:bg-base-100/10 border-gray-300/20 dark:border-gray-700 hover:border-primary/40 hover:shadow-primary/10'
                 } ${isClickable ? 'cursor-pointer' : ''}`}
         >
-            {}
+            { }
             <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 ${status.type === 'live'
                 ? 'bg-gradient-to-br from-green-500/10 via-transparent to-emerald-500/10'
                 : status.type === 'ended'
@@ -139,7 +170,7 @@ const ContestCard = ({ contest, onRegister, isRegistering }) => {
                 }`} />
 
 
-            {}
+            { }
             <div className="absolute top-4 right-4 z-10">
                 <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-white dark:text-white text-sm font-semibold ${status.color} shadow-lg`}>
                     {status.icon}
@@ -148,7 +179,7 @@ const ContestCard = ({ contest, onRegister, isRegistering }) => {
             </div>
 
             <div className="relative p-6 space-y-6">
-                {}
+                { }
                 <div className="space-y-3">
                     <h2 className={`text-2xl font-bold bg-gradient-to-r bg-clip-text text-transparent transition-all duration-300 ${status.type === 'live'
                         ? 'from-green-700 to-emerald-600 dark:from-green-300 dark:to-emerald-400 group-hover:from-green-600 group-hover:to-emerald-500'
@@ -163,9 +194,9 @@ const ContestCard = ({ contest, onRegister, isRegistering }) => {
                     </p>
                 </div>
 
-                {}
+                { }
                 <div className="grid grid-cols-2 gap-4">
-                    {}
+                    { }
                     <div className={`flex items-center gap-3 p-3 rounded-xl border transition-colors duration-300 ${status.type === 'live'
                         ? 'bg-green-100/60 dark:bg-green-800/40 border-green-200/50 dark:border-green-700/50 group-hover:border-green-400/40'
                         : status.type === 'ended'
@@ -189,7 +220,7 @@ const ContestCard = ({ contest, onRegister, isRegistering }) => {
                         </div>
                     </div>
 
-                    {}
+                    { }
                     <div className={`flex items-center gap-3 p-3 rounded-xl border transition-colors duration-300 ${status.type === 'live'
                         ? 'bg-green-100/60 dark:bg-green-800/40 border-green-200/50 dark:border-green-700/50 group-hover:border-emerald-500/40'
                         : status.type === 'ended'
@@ -216,7 +247,7 @@ const ContestCard = ({ contest, onRegister, isRegistering }) => {
                     </div>
                 </div>
 
-                {}
+                { }
                 <div className={`space-y-3 p-4 rounded-xl border ${status.type === 'live'
                     ? 'bg-gradient-to-r from-green-50/80 to-emerald-100/60 dark:from-green-800/30 dark:to-emerald-900/30 border-green-200/40 dark:border-green-700/30'
                     : status.type === 'ended'
@@ -260,7 +291,7 @@ const ContestCard = ({ contest, onRegister, isRegistering }) => {
                     )}
                 </div>
 
-                {}
+                { }
                 {contest.maxParticipants > 0 && (
                     <div className="space-y-2">
                         <div className="flex justify-between text-sm">
@@ -281,7 +312,7 @@ const ContestCard = ({ contest, onRegister, isRegistering }) => {
                     </div>
                 )}
 
-                {}
+                { }
                 <div className="pt-2" onClick={(e) => e.stopPropagation()}>
                     {status.text === 'Ended' ? (
                         <Link
@@ -388,16 +419,28 @@ function ContestPage() {
     };
 
     const filterContests = () => {
-        const now = new Date();
-        return contests.filter(contest => {
-            const start = new Date(contest.startTime);
-            const end = new Date(contest.endTime);
-            if (activeTab === 'Upcoming') return now < start;
-            if (activeTab === 'Ongoing') return now >= start && now <= end;
-            if (activeTab === 'Past') return now > end;
-            return false;
-        }).sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
-    };
+    const now = new Date();
+    console.log('Filtering contests at:', now.toISOString());
+    
+    return contests.filter(contest => {
+        const start = new Date(contest.startTime);
+        const end = new Date(contest.endTime);
+        
+        console.log(`Contest "${contest.title}":`, {
+            start: start.toISOString(),
+            end: end.toISOString(),
+            now: now.toISOString(),
+            isUpcoming: now < start,
+            isOngoing: now >= start && now <= end,
+            isPast: now > end
+        });
+        
+        if (activeTab === 'Upcoming') return now < start;
+        if (activeTab === 'Ongoing') return now >= start && now <= end;
+        if (activeTab === 'Past') return now > end;
+        return false;
+    }).sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
+};
 
     const filteredContests = filterContests();
     const totalContests = contests.length;
@@ -417,7 +460,7 @@ function ContestPage() {
     }
     return (
         <div className=" min-h-screen w-full bg-gray-50 dark:bg-[#1E1E1E]">
-            {}
+            { }
             <div className="fixed inset-0 z-0 pointer-events-none">
                 <Particles
                     particleColors={['#3b82f6', '#8b5cf6', '#ffffff']}
@@ -434,7 +477,7 @@ function ContestPage() {
 
             <div className="relative z-10 p-4 sm:p-6 lg:p-8">
                 <div className="max-w-4xl mx-auto">
-                    {}
+                    { }
                     <header className="text-center mb-12 space-y-6" data-aos="fade-down">
                         <div className="relative inline-block">
                             <Trophy className="w-12 h-12 mx-auto text-primary drop-shadow-lg" />
@@ -448,7 +491,7 @@ function ContestPage() {
                             </p>
                         </div>
 
-                        {}
+                        { }
                         <div className="flex justify-center gap-8 pt-6">
                             <div className="text-center">
                                 <div className="text-2xl font-bold text-primary">{totalContests}</div>
@@ -465,15 +508,15 @@ function ContestPage() {
                         </div>
                     </header>
 
-                    {}
+                    { }
                     <div className="flex justify-center mb-10" data-aos="fade-down" data-aos-delay="200">
                         <div className="relative p-1 bg-white/10 dark:bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-gray-200/30 dark:border-gray-700/50 shadow-lg">
                             <div className="flex relative">
-                                {}
+                                { }
                                 <div
-                                    className={`absolute top-1 bottom-1 bg-gradient-to-r from-primary to-purple-600 rounded-xl transition-all duration-300 ease-in-out shadow-lg z-0 ${activeTab === 'Upcoming' ? 'left-1 right-[66.666%]' :
-                                        activeTab === 'Ongoing' ? 'left-[33.333%] right-[33.333%]' :
-                                            'left-[66.666%] right-1'
+                                    className={`absolute top-1 bottom-1 bg-gradient-to-r from-primary to-purple-600 rounded-xl transition-all duration-500 ease-in-out shadow-lg z-0 ${activeTab === 'Upcoming' ? 'left-1 right-[66.666%]' :
+                                        activeTab === 'Ongoing' ? 'left-[41.333%] right-[30.333%]' :
+                                            'left-[70.666%] right-1'
                                         }`}
                                 />
 
@@ -512,7 +555,7 @@ function ContestPage() {
                         </div>
                     </div>
 
-                    {}
+                    { }
                     <main className="space-y-8">
                         {loading ? (
                             <div className="flex justify-center p-16">
@@ -551,7 +594,7 @@ function ContestPage() {
                                     </p>
                                 </div>
 
-                                {}
+                                { }
                                 <div className="pt-4">
                                     {activeTab !== 'Upcoming' && upcomingCount > 0 && (
                                         <button

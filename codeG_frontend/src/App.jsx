@@ -34,6 +34,7 @@ import ContestArena from "./pages/contestarena";
 import ContestResultsPage from "./pages/contestresult";
 import PairModePage from "./pages/pairMode";
 import PairSessionPage from "./pages/PairSessionPage";
+import JsonFormatPage from "./admin/JsonFormatPage"
 function App() {
   const dispatch = useDispatch();
   const { user, is_authenticated, loading } = useSelector((state) => state.auth)
@@ -90,6 +91,7 @@ if (loading) {
         <Route path="/admin/contest" element={<AdminContestListPage></AdminContestListPage>}></Route>
         <Route path="/admin/contests/create" element={<AdminCreateContest></AdminCreateContest>}></Route>
         <Route path="/admin/contests/edit/:contestId" element={<AdminEditContest></AdminEditContest>}></Route>
+        <Route path="/admin/problem/json-format" element={<JsonFormatPage></JsonFormatPage>}></Route>
 
       </Route>
       <Route path="/payment" element={is_authenticated ? <Paywall /> : <Navigate to="/login"></Navigate>}></Route>
