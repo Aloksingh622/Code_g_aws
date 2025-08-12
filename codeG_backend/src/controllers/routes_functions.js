@@ -388,7 +388,7 @@ const social_login = async (req, res) => {
             setpassword,
             firebase_uid: real_user.firebase_uid
         };
-        // On localhost
+        
         // res.cookie("token", token, {
         //     sameSite: 'lax',           // more forgiving than 'none'
         //     maxAge: 24 * 60 * 60 * 1000,
